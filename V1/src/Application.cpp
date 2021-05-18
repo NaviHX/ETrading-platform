@@ -59,11 +59,11 @@ int Application::exec()
                               << "ls <commdity name> [commdity type] : list commdity\n"
                               << "lsall : list all commdity\n"
                               << "lsu <username> : list a user info\n"
-                              << "addcomm <commdity name> <commdity type> <price>: add a commdity\n"
+                              << "addcomm <commdity name> <commdity type> <price> <description>: add a commdity\n"
                               << "chquantity <commdity name> <number> : change quantity\n"
                               << "chpr <commdity name> <number> : change price\n"
                               << "chpercent <commdity name> <number> : change discount\n"
-                              << "chtpercent <type> <number>\nhelp"
+                              << "chtpercent <type> <number>\nhelp\n"
                               << "quit : quit\n";
                     break;
 
@@ -136,7 +136,7 @@ int Application::exec()
                     std::istringstream iss(argv[3]);
                     double p;
                     iss >> p;
-                    if (!trade->addComm(argv[1], uname, argv[2], p))
+                    if (!trade->addComm(argv[1], uname, argv[2], p, argv[4]))
                     {
                         std::cout << "Failed\n";
                     }
@@ -260,6 +260,24 @@ int Application::exec()
                     if (!trade->setPassword(uname, argv[1]))
                     {
                         std::cout << "Failed\n";
+                    }
+                    break;
+
+                case recharge:
+                    if (argv.size() < 2)
+                    {
+                        std::cout << "Failed\n";
+                        break;
+                    }
+                    else
+                    {
+                        std::istringstream iss(argv[1]);
+                        double b;
+                        iss >> b;
+                        if (!trade->addbal(uname, b))
+                        {
+                            std::cout << "Failed\n";
+                        }
                     }
                     break;
 
