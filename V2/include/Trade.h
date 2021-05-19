@@ -15,6 +15,7 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <map>
 
 #include "User.h"
 #include "Commidity.h"
@@ -26,8 +27,17 @@ class Trade
 {
 private:
     std::vector<User *> userList;
-    std::vector<Commdity> commList;
+    std::vector<Commdity *> commList;
     Trade(const Trade &t);
+
+    enum commType
+    {
+        book,
+        food,
+        cloth
+    };
+
+    std::map<std::string, commType> commMap;
 
 public:
     bool readUserFile(const std::string &fp = "userdata.txt");
@@ -50,7 +60,7 @@ public:
     bool haveComm(const std::string &name) const;
     void listComm() const;
     void listComm(const std::string &name, const std::string &comType = "*", const std::string &uname = "") const;
-    bool addComm(const std::string &name, const std::string &uname, const std::string &comType, double price);
+    bool addComm(const std::string &name, const std::string &uname, const std::string &comType, double price, const std::string &desc);
     bool delComm(const std::string &name, const std::string &uname);
     bool changeQuantity(const std::string &name, const std::string &uname, int q);
     int getQuantity(const std::string &name) const;
@@ -62,8 +72,12 @@ public:
 
     // 购物
     bool buy(const std::string &uname);
+    bool genOrder(const std::string &uname);
+    bool delOrder(const std::string &uname);
     bool clearCart(const std::string &uname);
     bool addCart(const std::string &uname, const std::string &name, int q);
+    bool changeCart(const std::string &uname, const std::string &name, int q);
+    bool delCart(const std::string &uname, const std::string &name);
 
     ~Trade();
     Trade();

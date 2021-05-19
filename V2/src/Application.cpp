@@ -20,8 +20,13 @@ int Application::exec()
     strMap["help"] = strValue::help;
     strMap["regis"] = strValue::regis;
     strMap["login"] = strValue::login;
-    strMap["logout"] = strValue::logout;
+    // strMap["logout"]=strValue::logout;
     strMap["addcart"] = strValue::addcart;
+    strMap["delcart"] = strValue::delcart;
+    strMap["chcart"] = strValue::chcart;
+    strMap["clrcart"] = strValue::clrcart;
+    strMap["genorder"] = strValue::genorder;
+    strMap["delorder"] = strValue::delorder;
     strMap["settle"] = strValue::settle;
     strMap["recharge"] = strValue::recharge;
     strMap["ls"] = strValue::ls;
@@ -53,69 +58,150 @@ int Application::exec()
                               << "regis <name> <password> <0/1> : register a user\n"
                               << "login <name> <password> : login as a user\n"
                               << "logout : logout\n"
-                              << "addcart <commdity name> <number>: add a commdity into cart\n"
-                              << "settle : settle\n"
+                              << "addcart <commdity name> <number> : add a commdity into cart\n"
+                              << "delcart <commdity name> : delete a item\n"
+                              << "chcart <commdity name> <number> : change quantity in cart\n"
+                              << "clrcart : clear cart\n"
+                              << "genorder : generate the order\n"
+                              << "delorder : delete the order\n"
+                              << "settle : settle the order\n"
                               << "recharge <number> : recharge\n"
-                              << "ls <commdity name> [commdity type] : list commdity\n"
+                              << "ls <commdity name> <commdity type> : list commdity\n"
                               << "lsall : list all commdity\n"
                               << "lsu <username> : list a user info\n"
-                              << "addcomm <commdity name> <commdity type> <price>: add a commdity\n"
+                              << "addcomm <commdity name> <commdity type> <price> <description>: add a commdity\n"
                               << "chquantity <commdity name> <number> : change quantity\n"
                               << "chpr <commdity name> <number> : change price\n"
                               << "chpercent <commdity name> <number> : change discount\n"
                               << "chtpercent <type> <number>\n"
+                              << "help : help info\n"
                               << "quit : quit\n";
                     break;
 
                 case addcart:
-                    if (argv.size() < 3)
+                {
+                    if (!isLogged())
                     {
-                        std::cout << "INVALID format\n";
+                        std::cout << "NOT Logged\n";
                         break;
                     }
-                    else
+                    if (argv.size() < 3)
                     {
-                        std::istringstream iss(argv[2]);
-                        int num;
-                        iss >> num;
-                        if (trade->haveComm(argv[1]))
-                        {
-                            if (!trade->addCart(uname, argv[1], num))
-                            {
-                                std::cout << "Failed\n";
-                            }
-                        }
-                        else
-                        {
-                            std::cout << argv[1] << " NOT found\n";
-                        }
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+
+                    std::istringstream iss(argv[2]);
+                    int q;
+                    iss >> q;
+
+                    if (!trade->addCart(uname, argv[1], q))
+                    {
+                        std::cout << "Failed\n";
+                        break;
                     }
                     break;
+                }
 
                 case settle:
+                {
+                    if (!isLogged())
+                    {
+                        std::cout << "NOT Logged\n";
+                        break;
+                    }
                     if (!trade->buy(uname))
                     {
                         std::cout << "Failed\n";
                     }
                     break;
+                }
 
-                case recharge:
+                case delorder:
+                {
+                    if (!isLogged())
+                    {
+                        std::cout << "NOT Logged\n";
+                        break;
+                    }
+                    if (!trade->delOrder(uname))
+                    {
+                        std::cout << "Failed\n";
+                    }
+                    break;
+                }
+
+                case genorder:
+                {
+                    if (!isLogged())
+                    {
+                        std::cout << "NOT Logged\n";
+                        break;
+                    }
+                    if (!trade->genOrder(uname))
+                    {
+                        std::cout << "Failed\n";
+                    }
+                    break;
+                }
+
+                case clrcart:
+                {
+                    if (!isLogged())
+                    {
+                        std::cout << "NOT Logged\n";
+                        break;
+                    }
+                    if (!trade->clearCart(uname))
+                    {
+                        std::cout << "Failed\n";
+                    }
+                    break;
+                }
+
+                case delcart:
+                {
+                    if (!isLogged())
+                    {
+                        std::cout << "NOT Logged\n";
+                        break;
+                    }
                     if (argv.size() < 2)
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+                    if (!trade->delCart(uname, argv[1]))
+                    {
+                        std::cout << "Failed\n";
+                    }
+                    break;
+                }
+
+                case chcart:
+                {
+                    if (!isLogged())
+                    {
+                        std::cout << "NOT Logged\n";
+                        break;
+                    }
+                    if (argv.size() < 3)
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+
+                    std::istringstream iss(argv[2]);
+                    int q;
+                    iss >> q;
+
+                    if (!trade->changeCart(uname, argv[1], q))
                     {
                         std::cout << "Failed\n";
                         break;
                     }
-                    else
-                    {
-                        std::istringstream iss(argv[1]);
-                        double b;
-                        iss >> b;
-                        if (!trade->addbal(uname, b))
-                        {
-                            std::cout << "Failed\n";
-                        }
-                    }
                     break;
+                }
 
                 case regis:
                 {
@@ -140,14 +226,14 @@ int Application::exec()
                 break;
 
                 case login:
+                    if (isLogged())
+                    {
+                        std::cout << "Already logged\n";
+                        break;
+                    }
                     if (argv.size() < 3)
                     {
                         std::cout << "INVALID Format\n";
-                        break;
-                    }
-                    if (isLogged())
-                    {
-                        std::cout << "Failed\n";
                         break;
                     }
                     if (trade->checkPassword(argv[1], argv[2]))
@@ -161,10 +247,6 @@ int Application::exec()
                     {
                         std::cout << "Failed\n";
                     }
-                    break;
-
-                case logout:
-                    logged = false;
                     break;
 
                 case ls:
@@ -195,7 +277,7 @@ int Application::exec()
                     std::istringstream iss(argv[3]);
                     double p;
                     iss >> p;
-                    if (!trade->addComm(argv[1], uname, argv[2], p))
+                    if (!trade->addComm(argv[1], uname, argv[2], p, argv[4]))
                     {
                         std::cout << "Failed\n";
                     }
@@ -306,6 +388,7 @@ int Application::exec()
                 case quit:
                     trade->saveCommFile();
                     trade->saveUserFile();
+                    trade->delOrder(uname);
                     std::cout << "Quit.\n";
                     return 0;
                     break;
@@ -322,6 +405,24 @@ int Application::exec()
                     }
                     break;
 
+                case recharge:
+                    if (argv.size() < 2)
+                    {
+                        std::cout << "Failed\n";
+                        break;
+                    }
+                    else
+                    {
+                        std::istringstream iss(argv[1]);
+                        double b;
+                        iss >> b;
+                        if (!trade->addbal(uname, b))
+                        {
+                            std::cout << "Failed\n";
+                        }
+                    }
+                    break;
+
                 default:
                     std::cout << "ILLEGAL arg : " << argv[0] << " . Type help for more info" << std::endl;
                     break;
@@ -332,12 +433,8 @@ int Application::exec()
                 std::cout << "ILLEGAL arg : " << argv[0] << " . Type help for more info" << std::endl;
             }
         }
-        std::string oper;
         if (isLogged())
-        {
-            std::cout << "[ ID : " << uname << " ]\n"
-                      << "[ Balance : " << trade->getbal(uname) << "]\n";
-        }
+            std::cout << "[ " << uname << " ]\n";
         std::cout << "> ";
     }
     return 0;

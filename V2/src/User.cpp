@@ -12,7 +12,7 @@ User::User(
 bool Consumer::addCart(std::string comId, int num)
 {
     bool added = false;
-    for (auto it : cart)
+    for (auto& it : cart)
     {
         if (comId.compare(it.first) == 0)
         {
