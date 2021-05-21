@@ -10,9 +10,8 @@
 */
 
 #include <string>
-#include <vector>
 
-const int MAXBUF = 2048;
+#include "Trade.h"
 
 class Application
 {
@@ -21,6 +20,7 @@ private:
     std::string password;
     int token; // 远程服务器使用，防止每个报文中都有用户名与密码
 
+    Trade *trade;
     bool logged;
 
 public:
@@ -31,6 +31,11 @@ public:
         login,
         logout,
         addcart,
+        delcart,
+        chcart,
+        clrcart,
+        genorder,
+        delorder,
         settle,
         recharge,
         ls,
@@ -42,8 +47,7 @@ public:
         chpercent,
         chtpercent,
         quit,
-        setpw,
-        clcart
+        setpw
     };
 
     bool isLogged() { return logged; }

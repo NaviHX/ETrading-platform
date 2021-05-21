@@ -237,6 +237,7 @@ void Trade::listComm() const
                   << "Type : " << it->getComType() << " "
                   << "Quantity : " << it->getQuantity() << " "
                   << "Discount : " << it->getRealDiscount() << " "
+                  << "Owner : " << it->getOwner() << " "
                   << "Description : " << it->getDesc() << std::endl;
     }
 }
@@ -252,6 +253,7 @@ void Trade::listComm(const std::string &name, const std::string &comType, const 
                       << "Type : " << it->getComType() << " "
                       << "Quantity : " << it->getQuantity() << " "
                       << "Discount : " << it->getRealDiscount() << " "
+                      << "Owner : " << it->getOwner() << " "
                       << "Description : " << it->getDesc() << std::endl;
         }
     }
@@ -475,7 +477,7 @@ bool Trade::genOrder(const std::string &uname)
 
             for (auto &itemPair : cit->cart)
             {
-                sum += itemPair.second * getPrice(itemPair.first);
+                sum += (double)itemPair.second * (double)getPrice(itemPair.first);
                 changeQuantity(itemPair.first, adminName, getQuantity(itemPair.first) - itemPair.second);
             }
 

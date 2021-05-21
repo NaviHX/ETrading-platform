@@ -30,9 +30,19 @@ class Trade
 {
 private:
     std::vector<User *> userList;
-    std::vector<Commdity> commList;
+    std::vector<Commdity *> commList;
     Trade(const Trade &t);
+
     std::map<int, std::string> tokenMap;
+
+    enum commType
+    {
+        book,
+        food,
+        cloth
+    };
+
+    std::map<std::string, commType> commMap;
 
 public:
     bool readUserFile(const std::string &fp = "userdata.txt");
@@ -50,12 +60,13 @@ public:
     bool setbal(const std::string &uname, double b);
     bool addbal(const std::string &uname, double b);
     bool setPassword(const std::string &username, const std::string &password);
+    double getSum(const std::string& uname) const;
 
     // 商品管理
     bool haveComm(const std::string &name) const;
     std::string listComm() const;
     std::string listComm(const std::string &name, const std::string &comType = "*", const std::string &uname = "") const;
-    bool addComm(const std::string &name, const std::string &uname, const std::string &comType, double price);
+    bool addComm(const std::string &name, const std::string &uname, const std::string &comType, double price, const std::string &desc);
     bool delComm(const std::string &name, const std::string &uname);
     bool changeQuantity(const std::string &name, const std::string &uname, int q);
     int getQuantity(const std::string &name) const;
@@ -66,15 +77,19 @@ public:
     std::string getOwner(const std::string &name);
 
     // 购物
-    std::string buy(const std::string &uname);
+    bool buy(const std::string &uname);
+    bool genOrder(const std::string &uname);
+    bool delOrder(const std::string &uname);
     bool clearCart(const std::string &uname);
     bool addCart(const std::string &uname, const std::string &name, int q);
-
-    int exec(const std::string &port);
-    int keyGen(const std::string &name);
+    bool changeCart(const std::string &uname, const std::string &name, int q);
+    bool delCart(const std::string &uname, const std::string &name);
 
     ~Trade();
     Trade();
+
+    int exec(const std::string &port);
+    int keyGen(const std::string &name);
 };
 
 #endif

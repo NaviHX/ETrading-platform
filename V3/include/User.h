@@ -45,6 +45,10 @@ class Consumer : public User
 private:
 public:
     std::vector<std::pair<std::string, int>> cart;
+    std::vector<std::pair<std::string, int>> order;
+
+    bool haveOrder = false;
+    double sum = 0;
 
     virtual Type getUserType() override { return Type::consumer; }
     std::vector<std::pair<std::string, int>> getCart() const { return cart; }

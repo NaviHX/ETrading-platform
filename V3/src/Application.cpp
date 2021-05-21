@@ -4,14 +4,17 @@
 #include <sstream>
 #include <vector>
 #include <map>
-#include <strstream>
 
-#include <sys/socket.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sys/socket.h>
+
+#include <sstream>
+#include <strstream>
 
 Application::Application(const std::string &un, const std::string &pwd) : uname(un), password(pwd), logged(false)
 {
@@ -20,6 +23,11 @@ Application::Application(const std::string &un, const std::string &pwd) : uname(
 
 int Application::exec(const std::string &ip, const std::string &port)
 {
+    sockaddr_in serverAddr;
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port = htons(atoi(port.c_str()));
+    inet_aton(ip.c_str(), &serverAddr.sin_addr);
+
     std::map<std::string, strValue> strMap;
 
     strMap["help"] = strValue::help;
@@ -27,6 +35,11 @@ int Application::exec(const std::string &ip, const std::string &port)
     strMap["login"] = strValue::login;
     strMap["logout"] = strValue::logout;
     strMap["addcart"] = strValue::addcart;
+    strMap["delcart"] = strValue::delcart;
+    strMap["chcart"] = strValue::chcart;
+    strMap["clrcart"] = strValue::clrcart;
+    strMap["genorder"] = strValue::genorder;
+    strMap["delorder"] = strValue::delorder;
     strMap["settle"] = strValue::settle;
     strMap["recharge"] = strValue::recharge;
     strMap["ls"] = strValue::ls;
@@ -39,26 +52,20 @@ int Application::exec(const std::string &ip, const std::string &port)
     strMap["chtpercent"] = strValue::chtpercent;
     strMap["quit"] = strValue::quit;
     strMap["setpw"] = strValue::setpw;
-    strMap["clcart"] = strValue::clcart;
 
-    std::string oper;
-    std::cout << "> ";
-
-    sockaddr_in serverAddr;
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(atoi(port.c_str()));
-    inet_aton(ip.c_str(), &serverAddr.sin_addr);
-
-    // char *buffRecv = (char *)malloc(MAXBUF);
-    // char *buffSend = (char *)malloc(MAXBUF);
     char buffRecv[MAXBUF];
     char buffSend[MAXBUF];
 
+    std::string oper;
+    std::cout << "> ";
+    // while (std::cin >> oper)
     while (std::getline(std::cin, oper))
     {
         int clientFd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
         memset(buffRecv, 0, MAXBUF);
         memset(buffSend, 0, MAXBUF);
+
+        int len;
 
         auto argv = splitStr(oper);
         if (argv.size() > 0)
@@ -73,131 +80,263 @@ int Application::exec(const std::string &ip, const std::string &port)
                               << "regis <name> <password> <0/1> : register a user\n"
                               << "login <name> <password> : login as a user\n"
                               << "logout : logout\n"
-                              << "addcart <commdity name> <number>: add a commdity into cart\n"
-                              << "settle : settle\n"
+                              << "addcart <commdity name> <number> : add a commdity into cart\n"
+                              << "delcart <commdity name> : delete a item\n"
+                              << "chcart <commdity name> <number> : change quantity in cart\n"
+                              << "clrcart : clear cart\n"
+                              << "genorder : generate the order\n"
+                              << "delorder : delete the order\n"
+                              << "settle : settle the order\n"
                               << "recharge <number> : recharge\n"
-                              << "ls <commdity name> [commdity type] : list commdity\n"
+                              << "ls <commdity name> <commdity type> : list commdity\n"
                               << "lsall : list all commdity\n"
                               << "lsu <username> : list a user info\n"
-                              << "addcomm <commdity name> <commdity type> <price>: add a commdity\n"
+                              << "addcomm <commdity name> <commdity type> <price> <description>: add a commdity\n"
                               << "chquantity <commdity name> <number> : change quantity\n"
                               << "chpr <commdity name> <number> : change price\n"
                               << "chpercent <commdity name> <number> : change discount\n"
                               << "chtpercent <type> <number>\n"
+                              << "help : help info\n"
                               << "quit : quit\n";
                     break;
 
                 case addcart:
+                {
+                    if (!isLogged())
+                    {
+                        std::cout << "NOT Logged\n";
+                        break;
+                    }
                     if (argv.size() < 3)
                     {
-                        std::cout << "INVALID format\n";
+                        std::cout << "INVALID Format\n";
                         break;
                     }
-                    else
-                    {
-                        if (connect(clientFd, (sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
-                        {
-                            std::cout << "CANNOT connect server\n";
-                            return 0;
-                        }
-                        std::istringstream iss(argv[2]);
-                        int num;
-                        iss >> num;
 
-                        // std::string buff;
-                        std::ostrstream oss(buffSend, MAXBUF);
+                    std::istringstream iss(argv[2]);
+                    int q;
+                    iss >> q;
 
-                        oss << static_cast<char>(addcart)
-                            << " " << token
-                            << " " << argv[1]
-                            << " " << num;
-
-                        write(clientFd, buffSend, MAXBUF);
-
-                        recv(clientFd, buffRecv, MAXBUF, 0);
-                        std::istringstream recs(buffRecv);
-                        char ret;
-                        recs >> ret;
-                        if (ret == '0')
-                        {
-                            std::cout << "Failed\n";
-                        }
-                        break;
-                    }
-                    break;
-
-                case settle:
-                {
                     if (connect(clientFd, (sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
                     {
                         std::cout << "CANNOT connect server\n";
                         return 0;
                     }
 
-                    // std::string buff;
+                    std::ostrstream oss(buffSend, MAXBUF);
+                    oss << static_cast<char>(addcart)
+                        << " " << token
+                        << " " << argv[1]
+                        << " " << q;
+
+                    write(clientFd, buffSend, MAXBUF);
+                    recv(clientFd, buffRecv, MAXBUF, 0);
+
+                    std::istringstream recs(buffRecv);
+
+                    if (buffRecv[0] == '0')
+                    {
+                        std::cout << "Failed\n";
+                        break;
+                    }
+                    break;
+                }
+
+                case settle:
+                {
+                    if (!isLogged())
+                    {
+                        std::cout << "NOT Logged\n";
+                        break;
+                    }
+
+                    if (connect(clientFd, (sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
+                    {
+                        std::cout << "CANNOT connect server\n";
+                        return 0;
+                    }
+
                     std::ostrstream oss(buffSend, MAXBUF);
                     oss << static_cast<char>(settle)
                         << " " << token;
-                    write(clientFd, buffSend, MAXBUF);
 
-                    int len = recv(clientFd, buffRecv, MAXBUF, 0);
-                    // std::istringstream recs(buffRecv);
-                    // char ret;
-                    // recs >> ret;
-                    /*
-                    if (ret == '0')
+                    write(clientFd, buffSend, MAXBUF);
+                    recv(clientFd, buffRecv, MAXBUF, 0);
+
+                    if (buffRecv[0] == '0')
+                    {
+                        std::cout << "Failed\n";
+                        break;
+                    }
+                    else
+                    {
+                        std::cout << "Balance : " << *(double *)(buffRecv + 2) << std::endl;
+                        break;
+                    }
+                    break;
+                }
+
+                case delorder:
+                {
+                    if (!isLogged())
+                    {
+                        std::cout << "NOT Logged\n";
+                        break;
+                    }
+
+                    if (connect(clientFd, (sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
+                    {
+                        std::cout << "CANNOT connect server\n";
+                        return 0;
+                    }
+
+                    std::ostrstream oss(buffSend, MAXBUF);
+                    oss << static_cast<char>(delorder)
+                        << " " << token;
+
+                    write(clientFd, buffSend, MAXBUF);
+                    recv(clientFd, buffRecv, MAXBUF, 0);
+
+                    if (buffRecv[0] == '0')
+                    {
+                        std::cout << "Failed\n";
+                    }
+                    break;
+                }
+
+                case genorder:
+                {
+                    if (!isLogged())
+                    {
+                        std::cout << "NOT Logged\n";
+                        break;
+                    }
+
+                    if (connect(clientFd, (sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
+                    {
+                        std::cout << "CANNOT connect server\n";
+                        return 0;
+                    }
+
+                    std::ostrstream oss(buffSend, MAXBUF);
+                    oss << static_cast<char>(genorder)
+                        << " " << token;
+
+                    write(clientFd, buffSend, MAXBUF);
+                    recv(clientFd, buffRecv, MAXBUF, 0);
+
+                    if (buffRecv[0] == '0')
                     {
                         std::cout << "Failed\n";
                     }
                     else
                     {
-                        for (int i = 2; i < len; i++)
-                        {
-                            std::cout << buffRecv[i];
-                        }
+                        std::cout << "Sum : " << *(double *)(buffRecv + 2) << std::endl;
                     }
-                    */
-
-                    for (int i = 0; i < len; i++)
-                    {
-                        std::cout << buffRecv[i];
-                    }
+                    break;
                 }
-                break;
 
-                case recharge:
+                case clrcart:
+                {
+                    if (!isLogged())
+                    {
+                        std::cout << "NOT Logged\n";
+                        break;
+                    }
+
+                    if (connect(clientFd, (sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
+                    {
+                        std::cout << "CANNOT connect server\n";
+                        return 0;
+                    }
+
+                    std::ostrstream oss(buffSend, MAXBUF);
+                    oss << static_cast<char>(clrcart)
+                        << " " << token;
+
+                    write(clientFd, buffSend, MAXBUF);
+                    recv(clientFd, buffRecv, MAXBUF, 0);
+
+                    if (buffRecv[0] == '0')
+                    {
+                        std::cout << "Failed\n";
+                    }
+                    break;
+                }
+
+                case delcart:
+                {
+                    if (!isLogged())
+                    {
+                        std::cout << "NOT Logged\n";
+                        break;
+                    }
                     if (argv.size() < 2)
                     {
                         std::cout << "INVALID Format\n";
                         break;
                     }
-                    else
+
+                    if (connect(clientFd, (sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
                     {
-                        if (connect(clientFd, (sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
-                        {
-                            std::cout << "CANNOT connect server\n";
-                            return 0;
-                        }
+                        std::cout << "CANNOT connect server\n";
+                        return 0;
+                    }
 
-                        std::istringstream iss(argv[1]);
-                        double b;
-                        iss >> b;
+                    std::ostrstream oss(buffSend, MAXBUF);
+                    oss << static_cast<char>(delcart)
+                        << " " << token
+                        << " " << argv[1];
 
-                        // std::string buff;
-                        std::ostrstream oss(buffSend, MAXBUF);
-                        oss << static_cast<char>(recharge)
-                            << " " << token
-                            << " " << b;
+                    write(clientFd, buffSend, MAXBUF);
+                    recv(clientFd, buffRecv, MAXBUF, 0);
 
-                        write(clientFd, buffSend, MAXBUF);
-
-                        recv(clientFd, buffRecv, MAXBUF, 0);
-                        if (buffRecv[0] == '0')
-                        {
-                            std::cout << "Failed\n";
-                        }
+                    if (buffRecv[0] == '0')
+                    {
+                        std::cout << "Failed\n";
                     }
                     break;
+                }
+
+                case chcart:
+                {
+                    if (!isLogged())
+                    {
+                        std::cout << "NOT Logged\n";
+                        break;
+                    }
+                    if (argv.size() < 3)
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+
+                    std::istringstream iss(argv[2]);
+                    int q;
+                    iss >> q;
+
+                    if (connect(clientFd, (sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
+                    {
+                        std::cout << "CANNOT connect server\n";
+                        return 0;
+                    }
+
+                    std::ostrstream oss(buffSend, MAXBUF);
+                    oss << static_cast<char>(chcart)
+                        << " " << token
+                        << " " << argv[1]
+                        << " " << q;
+
+                    write(clientFd, buffSend, MAXBUF);
+                    recv(clientFd, buffRecv, MAXBUF, 0);
+
+                    if (buffRecv[0] == '0')
+                    {
+                        std::cout << "Failed\n";
+                        break;
+                    }
+                    break;
+                }
 
                 case regis:
                 {
@@ -206,6 +345,9 @@ int Application::exec(const std::string &ip, const std::string &port)
                         std::cout << "INVALID Format\n";
                         break;
                     }
+                    std::istringstream iss(argv[3]);
+                    int t;
+                    iss >> t;
 
                     if (connect(clientFd, (sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
                     {
@@ -213,11 +355,6 @@ int Application::exec(const std::string &ip, const std::string &port)
                         return 0;
                     }
 
-                    std::istringstream iss(argv[3]);
-                    int t;
-                    iss >> t;
-
-                    // std::string buff;
                     std::ostrstream oss(buffSend, MAXBUF);
                     oss << static_cast<char>(regis)
                         << " " << argv[1]
@@ -225,9 +362,9 @@ int Application::exec(const std::string &ip, const std::string &port)
                         << " " << t;
 
                     write(clientFd, buffSend, MAXBUF);
-
                     recv(clientFd, buffRecv, MAXBUF, 0);
-                    if (buffRecv[0] == '0')
+
+                    if (buffRecv[0] == '1')
                     {
                         std::cout << "User [ " << argv[1] << " ] added\n"
                                   << "Please login again\n";
@@ -241,14 +378,14 @@ int Application::exec(const std::string &ip, const std::string &port)
 
                 case login:
                 {
+                    if (isLogged())
+                    {
+                        std::cout << "Already logged\n";
+                        break;
+                    }
                     if (argv.size() < 3)
                     {
                         std::cout << "INVALID Format\n";
-                        break;
-                    }
-                    if (isLogged())
-                    {
-                        std::cout << "Failed\n";
                         break;
                     }
 
@@ -258,52 +395,27 @@ int Application::exec(const std::string &ip, const std::string &port)
                         return 0;
                     }
 
-                    // std::string buff;
                     std::ostrstream oss(buffSend, MAXBUF);
                     oss << static_cast<char>(login)
                         << " " << argv[1]
                         << " " << argv[2];
 
                     write(clientFd, buffSend, MAXBUF);
-
                     recv(clientFd, buffRecv, MAXBUF, 0);
 
-                    if (buffRecv[0] != '1')
+                    if (buffRecv[0] == '1')
                     {
-                        std::cout << "Failed\n";
-                    }
-                    else
-                    {
-                        // token = buffRecv[2];
-                        std::istringstream iss(buffRecv + 2);
-                        iss >> token;
                         uname = argv[1];
                         password = argv[2];
                         logged = true;
+                        std::cout << "Logged in\n";
+                        std::istringstream iss(buffRecv + 2);
+                        iss >> token;
                     }
-                }
-                break;
-
-                case logout:
-                {
-                    logged = false;
-
-                    if (connect(clientFd, (sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
+                    else
                     {
-                        std::cout << "CANNOT connect server\n";
-                        return 0;
+                        std::cout << "Failed\n";
                     }
-
-                    // std::string buff;
-                    std::ostrstream oss(buffSend, MAXBUF);
-
-                    oss << static_cast<char>(logout)
-                        << " " << token;
-
-                    write(clientFd, buffSend, MAXBUF);
-                    recv(clientFd, buffRecv, MAXBUF, 0);
-
-                    logged = false;
                 }
                 break;
 
@@ -321,15 +433,14 @@ int Application::exec(const std::string &ip, const std::string &port)
                         return 0;
                     }
 
-                    // std::string buff;
                     std::ostrstream oss(buffSend, MAXBUF);
                     oss << static_cast<char>(ls)
                         << " " << argv[1]
                         << " " << argv[2];
 
                     write(clientFd, buffSend, MAXBUF);
+                    len = recv(clientFd, buffRecv, MAXBUF, 0);
 
-                    int len = recv(clientFd, buffRecv, MAXBUF, 0);
                     for (int i = 0; i < len; i++)
                     {
                         std::cout << buffRecv[i];
@@ -345,20 +456,19 @@ int Application::exec(const std::string &ip, const std::string &port)
                         return 0;
                     }
 
-                    // std::string buff;
                     std::ostrstream oss(buffSend, MAXBUF);
-                    oss << static_cast<char>(ls)
-                        << " *"
-                        << " *";
+                    oss << static_cast<char>(lsall)
+                        << " " << token;
 
                     write(clientFd, buffSend, MAXBUF);
+                    len = recv(clientFd, buffRecv, MAXBUF, 0);
 
-                    int len = recv(clientFd, buffRecv, MAXBUF, 0);
                     for (int i = 0; i < len; i++)
                     {
                         std::cout << buffRecv[i];
                     }
                 }
+
                 break;
 
                 case addcomm:
@@ -373,6 +483,9 @@ int Application::exec(const std::string &ip, const std::string &port)
                         std::cout << "INVALID Format\n";
                         break;
                     }
+                    std::istringstream iss(argv[3]);
+                    double p;
+                    iss >> p;
 
                     if (connect(clientFd, (sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
                     {
@@ -380,18 +493,13 @@ int Application::exec(const std::string &ip, const std::string &port)
                         return 0;
                     }
 
-                    std::istringstream iss(argv[3]);
-                    double p;
-                    iss >> p;
-
-                    // std::string buff;
                     std::ostrstream oss(buffSend, MAXBUF);
-
                     oss << static_cast<char>(addcomm)
                         << " " << argv[1]
                         << " " << token
                         << " " << argv[2]
-                        << " " << p;
+                        << " " << p
+                        << " " << argv[4];
 
                     write(clientFd, buffSend, MAXBUF);
                     recv(clientFd, buffRecv, MAXBUF, 0);
@@ -415,6 +523,9 @@ int Application::exec(const std::string &ip, const std::string &port)
                         std::cout << "INVALID Format\n";
                         break;
                     }
+                    std::istringstream iss(argv[2]);
+                    int q;
+                    iss >> q;
 
                     if (connect(clientFd, (sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
                     {
@@ -422,11 +533,6 @@ int Application::exec(const std::string &ip, const std::string &port)
                         return 0;
                     }
 
-                    std::istringstream iss(argv[2]);
-                    int q;
-                    iss >> q;
-
-                    // std::string buff;
                     std::ostrstream oss(buffSend, MAXBUF);
                     oss << static_cast<char>(chquantity)
                         << " " << argv[1]
@@ -434,7 +540,6 @@ int Application::exec(const std::string &ip, const std::string &port)
                         << " " << q;
 
                     write(clientFd, buffSend, MAXBUF);
-
                     recv(clientFd, buffRecv, MAXBUF, 0);
 
                     if (buffRecv[0] == '0')
@@ -466,7 +571,6 @@ int Application::exec(const std::string &ip, const std::string &port)
                         return 0;
                     }
 
-                    // std::string buff;
                     std::ostrstream oss(buffSend, MAXBUF);
                     oss << static_cast<char>(chpr)
                         << " " << argv[1]
@@ -474,7 +578,6 @@ int Application::exec(const std::string &ip, const std::string &port)
                         << " " << p;
 
                     write(clientFd, buffSend, MAXBUF);
-
                     recv(clientFd, buffRecv, MAXBUF, 0);
 
                     if (buffRecv[0] == '0')
@@ -506,7 +609,6 @@ int Application::exec(const std::string &ip, const std::string &port)
                         return 0;
                     }
 
-                    // std::string buff;
                     std::ostrstream oss(buffSend, MAXBUF);
                     oss << static_cast<char>(chpercent)
                         << " " << argv[1]
@@ -546,17 +648,15 @@ int Application::exec(const std::string &ip, const std::string &port)
                         return 0;
                     }
 
-                    // std::string buff;
                     std::ostrstream oss(buffSend, MAXBUF);
-
                     oss << static_cast<char>(chtpercent)
                         << " " << argv[1]
                         << " " << token
                         << " " << p;
 
                     write(clientFd, buffSend, MAXBUF);
-
                     recv(clientFd, buffRecv, MAXBUF, 0);
+
                     if (buffRecv[0] == '0')
                     {
                         std::cout << "Failed\n";
@@ -571,21 +671,19 @@ int Application::exec(const std::string &ip, const std::string &port)
                         std::cout << "INVALID format\n";
                         break;
                     }
-
                     if (connect(clientFd, (sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
                     {
                         std::cout << "CANNOT connect server\n";
                         return 0;
                     }
 
-                    // std::string buff;
                     std::ostrstream oss(buffSend, MAXBUF);
                     oss << static_cast<char>(lsu)
                         << " " << argv[1];
 
                     write(clientFd, buffSend, MAXBUF);
+                    len = recv(clientFd, buffRecv, MAXBUF, 0);
 
-                    int len = recv(clientFd, buffRecv, MAXBUF, 0);
                     for (int i = 0; i < len; i++)
                     {
                         std::cout << buffRecv[i];
@@ -616,18 +714,12 @@ int Application::exec(const std::string &ip, const std::string &port)
                     close(clientFd);
                     return 0;
                 }
-                break;
 
                 case setpw:
                 {
-                    if (!isLogged())
-                    {
-                        std::cout << "NOT Logged\n";
-                        break;
-                    }
                     if (argv.size() < 2)
                     {
-                        std::cout << "INVALID Format\n";
+                        std::cout << "INVALID format\n";
                         break;
                     }
 
@@ -641,9 +733,7 @@ int Application::exec(const std::string &ip, const std::string &port)
                     oss << static_cast<char>(setpw)
                         << " " << token
                         << " " << argv[1];
-
                     write(clientFd, buffSend, MAXBUF);
-
                     recv(clientFd, buffRecv, MAXBUF, 0);
                     if (buffRecv[0] == '0')
                     {
@@ -652,13 +742,39 @@ int Application::exec(const std::string &ip, const std::string &port)
                 }
                 break;
 
-                case clcart:
-                {
-                    if (!isLogged())
+                case recharge:
+                    if (argv.size() < 2)
                     {
-                        std::cout << "NOT Logged\n";
+                        std::cout << "Failed\n";
                         break;
                     }
+                    else
+                    {
+                        std::istringstream iss(argv[1]);
+                        double b;
+                        iss >> b;
+
+                        if (connect(clientFd, (sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
+                        {
+                            std::cout << "CANNOT connect server\n";
+                            return 0;
+                        }
+
+                        std::ostrstream oss(buffSend, MAXBUF);
+                        oss << static_cast<char>(recharge)
+                            << " " << token
+                            << " " << b;
+                        write(clientFd, buffSend, MAXBUF);
+                        recv(clientFd, buffRecv, MAXBUF, 0);
+                        if (buffRecv[0] == '0')
+                        {
+                            std::cout << "Failed\n";
+                        }
+                    }
+                    break;
+                case logout:
+                {
+                    logged = false;
 
                     if (connect(clientFd, (sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
                     {
@@ -666,16 +782,14 @@ int Application::exec(const std::string &ip, const std::string &port)
                         return 0;
                     }
 
+                    // std::string buff;
                     std::ostrstream oss(buffSend, MAXBUF);
-                    oss << static_cast<char>(clcart)
-                        << " " << token;
-                    write(clientFd, buffSend, MAXBUF);
 
+                    oss << static_cast<char>(logout)
+                        << " " << token;
+
+                    write(clientFd, buffSend, MAXBUF);
                     recv(clientFd, buffRecv, MAXBUF, 0);
-                    if (buffRecv[0] == '0')
-                    {
-                        std::cout << "Failed\n";
-                    }
                 }
                 break;
 
@@ -689,13 +803,10 @@ int Application::exec(const std::string &ip, const std::string &port)
                 std::cout << "ILLEGAL arg : " << argv[0] << " . Type help for more info" << std::endl;
             }
         }
-        std::string oper;
-        if (isLogged())
-        {
-            std::cout << "[ ID : " << uname << " ]\n";
-        }
-        std::cout << "> ";
         close(clientFd);
+        if (isLogged())
+            std::cout << "[ " << uname << " ]\n";
+        std::cout << "> ";
     }
     return 0;
 }

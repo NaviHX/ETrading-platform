@@ -237,6 +237,7 @@ void Trade::listComm() const
                   << "Type : " << it->getComType() << " "
                   << "Quantity : " << it->getQuantity() << " "
                   << "Discount : " << it->getRealDiscount() << " "
+                  << "Owner : " << it->getOwner() << " "
                   << "Description : " << it->getDesc() << std::endl;
     }
 }
@@ -252,6 +253,7 @@ void Trade::listComm(const std::string &name, const std::string &comType, const 
                       << "Type : " << it->getComType() << " "
                       << "Quantity : " << it->getQuantity() << " "
                       << "Discount : " << it->getRealDiscount() << " "
+                      << "Owner : " << it->getOwner() << " "
                       << "Description : " << it->getDesc() << std::endl;
         }
     }

@@ -89,14 +89,31 @@ bool Trade::readCommFile(const std::string &fp)
         std::cout << fp << ": not exist\n";
         return false;
     }
-    std::string tempname, temptype, tempowner;
+    std::string tempname, temptype, tempowner, desc;
     double tempprice, temppercent;
     int quantity;
     f >> tempname;
     while (!f.eof())
     {
-        f >> temptype >> tempowner >> tempprice >> temppercent >> quantity;
-        Commdity c(tempprice, temppercent, quantity, temptype, tempname, tempowner);
+        f >> temptype >> tempowner >> tempprice >> temppercent >> quantity >> desc;
+        auto it = commMap.find(temptype);
+        auto ty = it->second;
+        Commdity *c = nullptr;
+        switch (ty)
+        {
+        case book:
+            c = new Book(tempprice, temppercent, quantity, temptype, tempname, tempowner, desc);
+            break;
+
+        case food:
+            c = new Food(tempprice, temppercent, quantity, temptype, tempname, tempowner, desc);
+            break;
+
+        case cloth:
+            c = new Cloth(tempprice, temppercent, quantity, temptype, tempname, tempowner, desc);
+            break;
+        }
+        // Commdity c(tempprice, temppercent, quantity, temptype, tempname, tempowner);
         commList.push_back(c);
         f >> tempname;
     }
@@ -111,12 +128,14 @@ bool Trade::saveCommFile(const std::string &fp) const
     std::ofstream f(fp, std::ios::out);
     for (const auto &it : commList)
     {
-        f << it.getName()
-          << " " << it.getComType()
-          << " " << it.getOwner()
-          << " " << it.getOriginPrice()
-          << " " << it.getPercent()
-          << " " << it.getQuantity() << std::endl;
+        f << it->getName()
+          << " " << it->getComType()
+          << " " << it->getOwner()
+          << " " << it->getOriginPrice()
+          << " " << it->getPercent()
+          << " " << it->getQuantity()
+          << " " << it->getDesc() << std::endl;
+        // delete it;
     }
     f.close();
     std::cout << "Done\n";
@@ -231,10 +250,13 @@ std::string Trade::listComm() const
     std::ostrstream oss(buff, MAXBUF);
     for (const auto &it : commList)
     {
-        oss << "Name : " << it.getName() << " "
-            << "Price : " << it.getPrice() << " "
-            << "Type : " << it.getComType() << " "
-            << "Quantity : " << it.getQuantity() << std::endl;
+        oss << "Name : " << it->getName() << " "
+            << "Price : " << it->getPrice() << " "
+            << "Type : " << it->getComType() << " "
+            << "Quantity : " << it->getQuantity() << " "
+            << "Discount : " << it->getRealDiscount() << " "
+            << "Owner : " << it->getOwner() << " "
+            << "Description : " << it->getDesc() << std::endl;
     }
     ret = buff;
     return ret;
@@ -248,26 +270,51 @@ std::string Trade::listComm(const std::string &name, const std::string &comType,
     std::ostrstream oss(buff, MAXBUF);
     for (const auto &it : commList)
     {
-        if ((name == "*" || it.getName().find(name) != std::string::npos) && (comType == "*" || comType.compare(it.getComType()) == 0) && (uname == "" || uname.compare(it.getOwner()) == 0))
+        if ((name == "*" || it->getName().find(name) != std::string::npos) && (comType == "*" || comType.compare(it->getComType()) == 0) && (uname == "" || uname.compare(it->getOwner()) == 0))
         {
-            oss << "Name : " << it.getName() << " "
-                << "Price : " << it.getPrice() << " "
-                << "Type : " << it.getComType() << " "
-                << "Quantity : " << it.getQuantity() << std::endl;
+            oss << "Name : " << it->getName() << " "
+                << "Price : " << it->getPrice() << " "
+                << "Type : " << it->getComType() << " "
+                << "Quantity : " << it->getQuantity() << " "
+                << "Discount : " << it->getRealDiscount() << " "
+                << "Owner : " << it->getOwner() << " "
+                << "Description : " << it->getDesc() << std::endl;
         }
     }
     ret = buff;
     return ret;
 }
 
-bool Trade::addComm(const std::string &name, const std::string &uname, const std::string &comType, double price)
+bool Trade::addComm(const std::string &name, const std::string &uname, const std::string &comType, double price, const std::string &desc)
 {
+    if (price < 0)
+    {
+        return false;
+    }
     for (auto it : commList)
     {
-        if (name.compare(it.getName()) == 0)
+        if (name.compare(it->getName()) == 0)
             return false;
     }
-    Commdity c(price, 1, 0, comType, name, uname);
+    auto it = commMap.find(comType);
+    if (it == commMap.end())
+    {
+        return false;
+    }
+    Commdity *c = nullptr;
+    switch (it->second)
+    {
+    case book:
+        c = new Book(price, 1, 0, comType, name, uname, desc);
+        break;
+    case food:
+        c = new Food(price, 1, 0, comType, name, uname, desc);
+        break;
+    case cloth:
+        c = new Cloth(price, 1, 0, comType, name, uname, desc);
+        break;
+    }
+    // Commdity c(price, 1, 0, comType, name, uname);
     commList.push_back(c);
     return true;
 }
@@ -276,7 +323,7 @@ bool Trade::delComm(const std::string &name, const std::string &uname)
 {
     for (auto it = commList.begin(); it != commList.end(); it++)
     {
-        if (name.compare(it->getName()) == 0 && uname.compare(it->getOwner()) == 0)
+        if (name.compare((*it)->getName()) == 0 && uname.compare((*it)->getOwner()) == 0)
         {
             commList.erase(it);
             return true;
@@ -287,11 +334,15 @@ bool Trade::delComm(const std::string &name, const std::string &uname)
 
 bool Trade::changeQuantity(const std::string &name, const std::string &uname, int q)
 {
+    if (q < 0)
+    {
+        return false;
+    }
     for (auto it = commList.begin(); it != commList.end(); it++)
     {
-        if (name.compare(it->getName()) == 0 && (uname == adminName || uname.compare(it->getOwner()) == 0))
+        if (name.compare((*it)->getName()) == 0 && (uname == adminName || uname.compare((*it)->getOwner()) == 0))
         {
-            it->setQuantity(q);
+            (*it)->setQuantity(q);
             return true;
         }
     }
@@ -300,11 +351,15 @@ bool Trade::changeQuantity(const std::string &name, const std::string &uname, in
 
 bool Trade::setPrice(const std::string &name, const std::string &uname, double p)
 {
+    if (p < 0)
+    {
+        return false;
+    }
     for (auto it = commList.begin(); it != commList.end(); it++)
     {
-        if (name.compare(it->getName()) == 0 && uname.compare(it->getOwner()) == 0)
+        if (name.compare((*it)->getName()) == 0 && uname.compare((*it)->getOwner()) == 0)
         {
-            it->setOriginPrice(p);
+            (*it)->setOriginPrice(p);
             return true;
         }
     }
@@ -313,11 +368,15 @@ bool Trade::setPrice(const std::string &name, const std::string &uname, double p
 
 bool Trade::setPercent(const std::string &name, const std::string &uname, double p)
 {
+    if (p < 0)
+    {
+        return false;
+    }
     for (auto it = commList.begin(); it != commList.end(); it++)
     {
-        if (name.compare(it->getName()) == 0 && (uname.compare(it->getOwner()) == 0 || uname == adminName))
+        if (name.compare((*it)->getName()) == 0 && (uname.compare((*it)->getOwner()) == 0 || uname == adminName))
         {
-            it->setPercent(p);
+            (*it)->setPercent(p);
             return true;
         }
     }
@@ -326,64 +385,201 @@ bool Trade::setPercent(const std::string &name, const std::string &uname, double
 
 bool Trade::setPercent(double p, const std::string &type, const std::string &uname)
 {
+    if (p < 0)
+    {
+        return false;
+    }
+    /* 
     for (auto it = commList.begin(); it != commList.end(); it++)
     {
-        if (type.compare(it->getComType()) == 0 && (uname.compare(it->getOwner()) == 0 || uname == adminName))
+        if (type.compare((*it)->getComType()) == 0 && (uname.compare((*it)->getOwner()) == 0 || uname == adminName))
         {
-            it->setPercent(p);
+            (*it)->setPercent(p);
         }
+    }
+    return true;
+     */
+    if (uname != adminName)
+    {
+        return false;
+    }
+    auto it = commMap.find(type);
+    if (it == commMap.end())
+    {
+        return false;
+    }
+    auto ty = it->second;
+    switch (ty)
+    {
+    case book:
+        Book::setDiscount(p);
+        break;
+
+    case food:
+        Food::setDiscount(p);
+        break;
+
+    case cloth:
+        Cloth::setDiscount(p);
+        break;
     }
     return true;
 }
 
-std::string Trade::buy(const std::string &uname)
+std::string Trade::getOwner(const std::string &name)
 {
-    char buff[MAXBUF];
-    std::ostrstream oss(buff, MAXBUF);
-    std::string ret = "CANNOT buy\n";
+    for (auto &cit : commList)
+    {
+        if (cit->getName() == name)
+        {
+            return cit->getOwner();
+        }
+    }
+    return "";
+}
+
+bool Trade::buy(const std::string &uname)
+{
     for (auto uit : userList)
     {
         if (uname.compare(uit->getName()) == 0 && uit->getUserType() == User::Type::consumer)
         {
-            double sum = 0.0;
-            Consumer *cuit = dynamic_cast<Consumer *>(uit);
-            auto cart = cuit->getCart();
-            dynamic_cast<Merchant *>(uit);
+            double sum = dynamic_cast<Consumer *>(uit)->sum;
+            auto order = dynamic_cast<Consumer *>(uit)->order;
+            /*
             for (auto cit : cart)
             {
                 double price = getPrice(cit.first);
                 if (price == -1 && cit.second <= getQuantity(cit.first))
                 {
-                    return ret;
+                    return false;
                 }
                 changeQuantity(cit.first, uit->getName(), getQuantity(cit.first) - cit.second);
                 sum += price * cit.second;
             }
+            */
             if (sum > uit->getBalance())
             {
-                for (auto cit : cart)
-                {
-                    // double price = getPrice(cit.first);
-                    changeQuantity(cit.first, uit->getName(), getQuantity(cit.first) + cit.second);
-                }
-                return ret;
+                return false;
             }
-            // std::cout << "Buy : \n";
-            oss << "Buy : \n";
-            for (auto cit : cart)
-            {
-                addbal(getOwner(cit.first), cit.second * getPrice(cit.first));
-                // std::cout << cit.first << " : " << cit.second << std::endl;
-                oss << cit.first << " : " << cit.second << std::endl;
-            }
-            uit->setBalance(uit->getBalance() - sum);
-            clearCart(uit->getName());
 
-            ret = buff;
-            return ret;
+            for (auto itemPair : order)
+            {
+                auto owner = getOwner(itemPair.first);
+                addbal(owner, getPrice(itemPair.first) * itemPair.second);
+            }
+
+            uit->setBalance(uit->getBalance() - sum);
+
+            auto cit = dynamic_cast<Consumer *>(uit);
+            cit->order.erase(cit->order.begin(), cit->order.end());
+            cit->cart.erase(cit->cart.begin(), cit->cart.end());
+
+            cit->haveOrder = false;
+
+            return true;
         }
     }
-    return "CANNOT buy\n";
+    return false;
+}
+
+bool Trade::genOrder(const std::string &uname)
+{
+    for (auto uit : userList)
+    {
+        auto cit = dynamic_cast<Consumer *>(uit);
+
+        if (uit->getName() == uname && uit->getUserType() == User::consumer && (dynamic_cast<Consumer *>(uit))->haveOrder == false)
+        {
+            double sum = 0.0;
+
+            for (auto &itemPair : cit->cart)
+            {
+                if (getQuantity(itemPair.first) < itemPair.second)
+                {
+                    return false;
+                }
+            }
+
+            for (auto &itemPair : cit->cart)
+            {
+                sum += (double)itemPair.second * (double)getPrice(itemPair.first);
+                changeQuantity(itemPair.first, adminName, getQuantity(itemPair.first) - itemPair.second);
+            }
+
+            (dynamic_cast<Consumer *>(uit))->order = (dynamic_cast<Consumer *>(uit))->cart;
+            (dynamic_cast<Consumer *>(uit))->haveOrder = true;
+            (dynamic_cast<Consumer *>(uit))->sum = sum;
+            std::cout << "Sum : " << sum << std::endl;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Trade::delOrder(const std::string &uname)
+{
+    for (auto &uit : userList)
+    {
+        if (uit->getName() == uname && uit->getUserType() == User::consumer && (dynamic_cast<Consumer *>(uit))->haveOrder == true)
+        {
+            for (auto &itemPair : (dynamic_cast<Consumer *>(uit))->cart)
+            {
+                changeQuantity(itemPair.first, adminName, getPrice(itemPair.first) - itemPair.second);
+            }
+
+            auto cit = dynamic_cast<Consumer *>(uit);
+
+            cit->order.erase(cit->order.begin(), cit->order.end());
+            cit->haveOrder = false;
+            cit->sum = 0;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Trade::changeCart(const std::string &uname, const std::string &name, int q)
+{
+    if (q < 0)
+    {
+        return false;
+    }
+    for (auto &uit : userList)
+    {
+        if (uit->getName() == uname && uit->getUserType() == User::consumer)
+        {
+            for (auto &itemPair : dynamic_cast<Consumer *>(uit)->cart)
+            {
+                if (itemPair.first == name)
+                {
+                    itemPair.second = q;
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+    return false;
+}
+
+bool Trade::delCart(const std::string &uname, const std::string &name)
+{
+    for (auto &uit : userList)
+    {
+        if (uit->getName() == uname && uit->getUserType() == User::consumer)
+        {
+            for (auto it = dynamic_cast<Consumer *>(uit)->cart.begin(); it != dynamic_cast<Consumer *>(uit)->cart.end(); it++)
+            {
+                if (it->first == name)
+                {
+                    dynamic_cast<Consumer *>(uit)->cart.erase(it);
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 
 int Trade::getQuantity(const std::string &name) const
@@ -391,9 +587,9 @@ int Trade::getQuantity(const std::string &name) const
     int ret = -1;
     for (auto it = commList.begin(); it != commList.end(); it++)
     {
-        if (name.compare(it->getName()) == 0)
+        if (name.compare((*it)->getName()) == 0)
         {
-            ret = it->getQuantity();
+            ret = (*it)->getQuantity();
             return ret;
         }
     }
@@ -402,12 +598,12 @@ int Trade::getQuantity(const std::string &name) const
 
 double Trade::getPrice(const std::string &name) const
 {
-    int ret = -1;
+    double ret = -1;
     for (auto it = commList.begin(); it != commList.end(); it++)
     {
-        if (name.compare(it->getName()) == 0)
+        if (name.compare((*it)->getName()) == 0)
         {
-            ret = it->getPrice();
+            ret = (*it)->getPrice();
             return ret;
         }
     }
@@ -432,7 +628,7 @@ bool Trade::haveComm(const std::string &name) const
 {
     for (auto it : commList)
     {
-        if (name.compare(it.getName()) == 0)
+        if (name.compare(it->getName()) == 0)
         {
             return true;
         }
@@ -442,6 +638,10 @@ bool Trade::haveComm(const std::string &name) const
 
 bool Trade::addCart(const std::string &uname, const std::string &name, int q)
 {
+    if (q < 0)
+    {
+        return false;
+    }
     if (haveComm(name) && haveUser(uname))
     {
         for (auto uit : userList)
@@ -463,11 +663,12 @@ Trade::Trade(const Trade &t)
 
 Trade::Trade()
 {
-    readCommFile();
-    readUserFile();
-
     Merchant *upt = new Merchant(adminName, adminPwd, 0);
     userList.push_back(upt);
+
+    commMap.insert(std::pair<std::string, commType>("book", book));
+    commMap.insert(std::pair<std::string, commType>("food", food));
+    commMap.insert(std::pair<std::string, commType>("cloth", cloth));
 }
 
 Trade::~Trade()
@@ -492,6 +693,10 @@ double Trade::getbal(const std::string &uname) const
 
 bool Trade::setbal(const std::string &uname, double b)
 {
+    if (b < 0)
+    {
+        return false;
+    }
     for (auto uit : userList)
     {
         if (uname.compare(uit->getName()) == 0)
@@ -505,6 +710,10 @@ bool Trade::setbal(const std::string &uname, double b)
 
 bool Trade::addbal(const std::string &uname, double b)
 {
+    if (b < 0)
+    {
+        return false;
+    }
     for (auto uit : userList)
     {
         if (uname.compare(uit->getName()) == 0)
@@ -516,40 +725,37 @@ bool Trade::addbal(const std::string &uname, double b)
     return false;
 }
 
-std::string Trade::getOwner(const std::string &name)
+bool Trade::setPassword(const std::string &username, const std::string &password)
 {
-    for (auto cit : commList)
+    for (auto uit : userList)
     {
-        if (name.compare(cit.getName()) == 0)
+        if (username == uit->getName())
         {
-            return cit.getOwner();
+            uit->setPassword(password);
+            return true;
         }
     }
-    return "";
+    return false;
 }
 
-int Trade::keyGen(const std::string &name)
+double Trade::getSum(const std::string &uname) const
 {
-    int ret = -1;
-    if (tokenMap.size() == MAXMAP)
+    for (auto uit : userList)
     {
-        return ret;
-    }
-    for (int i = 0; i < MAXMAP; i++)
-    {
-        auto it = tokenMap.find(i);
-        if (it == tokenMap.end())
+        if (uit->getName() == uname && uit->getUserType() == User::consumer)
         {
-            ret = i;
-            tokenMap[i] = name;
-            break;
+            auto cit = dynamic_cast<Consumer *>(uit);
+            return cit->sum;
         }
     }
-    return ret;
+    return -1;
 }
 
 int Trade::exec(const std::string &port)
 {
+
+    std::cout << "LISTENING : " << port << std::endl;
+
     int serverFd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     sockaddr_in myAddr;
     myAddr.sin_family = AF_INET;
@@ -571,6 +777,7 @@ int Trade::exec(const std::string &port)
     int addrLen = sizeof(clientAddr);
 
     int clientFd;
+
     while (1)
     {
         memset(buffRecv, 0, MAXBUF);
@@ -589,7 +796,6 @@ int Trade::exec(const std::string &port)
         std::istringstream iss(buffRecv + 2);
 
         char oper;
-        // iss >> oper;
         oper = buffRecv[0];
 
         std::cout << "oper : " << oper << std::endl;
@@ -598,6 +804,7 @@ int Trade::exec(const std::string &port)
         int token;
         int num;
         double mon;
+        std::string desc;
 
         switch (oper)
         {
@@ -683,12 +890,118 @@ int Trade::exec(const std::string &port)
             }
             break;
 
-        // settle
+        // delcart
         case 5:
+            iss >> t >> cname;
+            token = atoi(t.c_str());
+            name = tokenMap[token];
+
+            if (!delCart(name, cname))
+            {
+                buffSend[0] = '0';
+                len++;
+                break;
+            }
+            else
+            {
+                buffSend[0] = '1';
+                len++;
+                break;
+            }
+            break;
+
+        // chcart
+        case 6:
+            iss >> t >> cname >> num;
+            token = atoi(t.c_str());
+            name = tokenMap[token];
+
+            if (!changeCart(name, cname, num))
+            {
+                buffSend[0] = '0';
+                len++;
+                break;
+            }
+            else
+            {
+                buffSend[0] = '1';
+                len++;
+                break;
+            }
+            break;
+
+        // clrcart
+        case 7:
             iss >> t;
             token = atoi(t.c_str());
             name = tokenMap[token];
-            /*
+
+            if (!clearCart(name))
+            {
+                buffSend[0] = '0';
+                len++;
+                break;
+            }
+            else
+            {
+                buffSend[0] = '1';
+                len++;
+                break;
+            }
+
+            break;
+
+        // genorder
+        case 8:
+            iss >> t;
+            token = atoi(t.c_str());
+            name = tokenMap[token];
+
+            if (!genOrder(name))
+            {
+                buffSend[0] = '0';
+                len++;
+                break;
+            }
+            else
+            {
+                buffSend[0] = '1';
+                buffSend[1] = ' ';
+                len += 2;
+                double d = getSum(name);
+                memcpy(buffSend + len, &d, sizeof(d));
+                len += sizeof(d);
+                break;
+            }
+
+            break;
+
+        // delorder
+        case 9:
+            iss >> t;
+            token = atoi(t.c_str());
+            name = tokenMap[token];
+
+            if (!delOrder(name))
+            {
+                buffSend[0] = '0';
+                len++;
+                break;
+            }
+            else
+            {
+                buffSend[0] = '1';
+                len++;
+                break;
+            }
+            break;
+
+        // settle
+        case 10:
+            iss >> t;
+            token = atoi(t.c_str());
+            name = tokenMap[token];
+
             if (!buy(name))
             {
                 buffSend[0] = '0';
@@ -705,16 +1018,15 @@ int Trade::exec(const std::string &port)
                 len += sizeof(b);
                 break;
             }
-            */
-            {
+            /* {
                 std::string ret = buy(name);
                 memcpy(buffSend, ret.c_str(), ret.size());
                 len = ret.size();
-            }
+            } */
             break;
 
         // recharge
-        case 6:
+        case 11:
             iss >> t >> mon;
             token = atoi(t.c_str());
             name = tokenMap[token];
@@ -737,7 +1049,7 @@ int Trade::exec(const std::string &port)
             break;
 
         // ls
-        case 7:
+        case 12:
             iss >> cname >> type;
             {
                 std::string ret = listComm(cname, type);
@@ -747,7 +1059,7 @@ int Trade::exec(const std::string &port)
             break;
 
         // lsall
-        case 8:
+        case 13:
             // use wildcard
             {
                 std::string ret = listComm("*", "*");
@@ -757,7 +1069,7 @@ int Trade::exec(const std::string &port)
             break;
 
         // lsu
-        case 9:
+        case 14:
             iss >> name;
             {
                 std::string ret = getUserInfo(name);
@@ -767,11 +1079,11 @@ int Trade::exec(const std::string &port)
             break;
 
         // addcomm
-        case 10:
-            iss >> cname >> t >> type >> mon;
+        case 15:
+            iss >> cname >> t >> type >> mon >> desc;
             token = atoi(t.c_str());
             name = tokenMap[token];
-            if (!addComm(cname, name, type, mon))
+            if (!addComm(cname, name, type, mon, desc))
             {
                 buffSend[0] = '0';
                 len++;
@@ -786,7 +1098,7 @@ int Trade::exec(const std::string &port)
             break;
 
         // chquantity
-        case 11:
+        case 16:
             iss >> cname >> t >> num;
             token = atoi(t.c_str());
             name = tokenMap[token];
@@ -805,7 +1117,7 @@ int Trade::exec(const std::string &port)
             break;
 
         // chpr
-        case 12:
+        case 17:
             iss >> cname >> t >> mon;
             token = atoi(t.c_str());
             name = tokenMap[token];
@@ -824,7 +1136,7 @@ int Trade::exec(const std::string &port)
             break;
 
         // chpercent
-        case 13:
+        case 18:
             iss >> cname >> t >> mon;
             token = atoi(t.c_str());
             name = tokenMap[token];
@@ -843,7 +1155,7 @@ int Trade::exec(const std::string &port)
             break;
 
         // chtpercent
-        case 14:
+        case 19:
             iss >> type >> t >> mon;
             token = atoi(t.c_str());
             name = tokenMap[token];
@@ -862,7 +1174,7 @@ int Trade::exec(const std::string &port)
             break;
 
         // quit
-        case 15:
+        case 20:
             iss >> t;
             token = atoi(t.c_str());
             name = tokenMap[token];
@@ -887,30 +1199,11 @@ int Trade::exec(const std::string &port)
             break;
 
         // setpw
-        case 16:
+        case 21:
             iss >> t >> cname;
             token = atoi(t.c_str());
             name = tokenMap[token];
             if (!setPassword(name, cname))
-            {
-                buffSend[0] = '0';
-                len++;
-                break;
-            }
-            else
-            {
-                buffSend[0] = '1';
-                len++;
-                break;
-            }
-            break;
-
-        // clcart
-        case 17:
-            iss >> t;
-            token = atoi(t.c_str());
-            name = tokenMap[token];
-            if (!clearCart(name))
             {
                 buffSend[0] = '0';
                 len++;
@@ -929,15 +1222,22 @@ int Trade::exec(const std::string &port)
     }
 }
 
-bool Trade::setPassword(const std::string &username, const std::string &password)
+int Trade::keyGen(const std::string &name)
 {
-    for (auto uit : userList)
+    int ret = -1;
+    if (tokenMap.size() == MAXMAP)
     {
-        if (username == uit->getName())
+        return ret;
+    }
+    for (int i = 0; i < MAXMAP; i++)
+    {
+        auto it = tokenMap.find(i);
+        if (it == tokenMap.end())
         {
-            uit->setPassword(password);
-            return true;
+            ret = i;
+            tokenMap[i] = name;
+            break;
         }
     }
-    return false;
+    return ret;
 }
