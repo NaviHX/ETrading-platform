@@ -39,6 +39,7 @@ int Application::exec()
     strMap["chtpercent"] = strValue::chtpercent;
     strMap["quit"] = strValue::quit;
     strMap["setpw"] = strValue::setpw;
+    strMap["withdraw"] = strValue::withdraw;
 
     std::string oper;
     std::cout << "> ";
@@ -420,6 +421,26 @@ int Application::exec()
                         {
                             std::cout << "Failed\n";
                         }
+                    }
+                    break;
+
+                case withdraw:
+                    if (argv.size() < 2)
+                    {
+                        std::cout << "INVALID format\n";
+                        break;
+                    }
+                    else
+                    {
+                        std::istringstream iss(argv[1]);
+                        double b;
+                        iss >> b;
+                        if (!trade->redbal(uname, b))
+                        {
+                            std::cout << "Failed\n";
+                            break;
+                        }
+                        std::cout << "Withdraw : " << b << std::endl;
                     }
                     break;
 

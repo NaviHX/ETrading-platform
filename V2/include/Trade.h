@@ -54,6 +54,7 @@ public:
     double getbal(const std::string &uname) const;
     bool setbal(const std::string &uname, double b);
     bool addbal(const std::string &uname, double b);
+    bool redbal(const std::string &uname, double b);
     bool setPassword(const std::string &username, const std::string &password);
 
     // 商品管理
@@ -68,7 +69,7 @@ public:
     double getPrice(const std::string &name) const;
     bool setPercent(const std::string &name, const std::string &uname, double p);
     bool setPercent(double p, const std::string &type, const std::string &uname);
-    std::string getOwner(const std::string& name);
+    std::string getOwner(const std::string &name);
 
     // 购物
     bool buy(const std::string &uname);

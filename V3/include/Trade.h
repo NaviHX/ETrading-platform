@@ -59,8 +59,9 @@ public:
     double getbal(const std::string &uname) const;
     bool setbal(const std::string &uname, double b);
     bool addbal(const std::string &uname, double b);
+    bool redbal(const std::string &uname, double b);
     bool setPassword(const std::string &username, const std::string &password);
-    double getSum(const std::string& uname) const;
+    double getSum(const std::string &uname) const;
 
     // 商品管理
     bool haveComm(const std::string &name) const;

@@ -34,6 +34,7 @@ int Application::exec()
     strMap["chtpercent"] = strValue::chtpercent;
     strMap["quit"] = strValue::quit;
     strMap["setpw"] = strValue::setpw;
+    strMap["withdraw"] = strValue::withdraw;
 
     std::string oper;
     std::cout << "> ";
@@ -63,7 +64,9 @@ int Application::exec()
                               << "chquantity <commdity name> <number> : change quantity\n"
                               << "chpr <commdity name> <number> : change price\n"
                               << "chpercent <commdity name> <number> : change discount\n"
-                              << "chtpercent <type> <number>\nhelp\n"
+                              << "chtpercent <type> <number>\n"
+                              << "withdraw <number> : withdraw\n"
+                              << "help\n"
                               << "quit : quit\n";
                     break;
 
@@ -266,7 +269,7 @@ int Application::exec()
                 case recharge:
                     if (argv.size() < 2)
                     {
-                        std::cout << "Failed\n";
+                        std::cout << "INVALID format\n";
                         break;
                     }
                     else
@@ -278,6 +281,26 @@ int Application::exec()
                         {
                             std::cout << "Failed\n";
                         }
+                    }
+                    break;
+
+                case withdraw:
+                    if (argv.size() < 2)
+                    {
+                        std::cout << "INVALID format\n";
+                        break;
+                    }
+                    else
+                    {
+                        std::istringstream iss(argv[1]);
+                        double b;
+                        iss >> b;
+                        if (!trade->redbal(uname, b))
+                        {
+                            std::cout << "Failed\n";
+                            break;
+                        }
+                        std::cout << "Withdraw : " << b << std::endl;
                     }
                     break;
 

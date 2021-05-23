@@ -52,6 +52,7 @@ int Application::exec(const std::string &ip, const std::string &port)
     strMap["chtpercent"] = strValue::chtpercent;
     strMap["quit"] = strValue::quit;
     strMap["setpw"] = strValue::setpw;
+    strMap["withdraw"] = strValue::withdraw;
 
     char buffRecv[MAXBUF];
     char buffSend[MAXBUF];
@@ -772,6 +773,40 @@ int Application::exec(const std::string &ip, const std::string &port)
                         }
                     }
                     break;
+
+                case withdraw:
+                    if (argv.size() < 2)
+                    {
+                        std::cout << "Failed\n";
+                        break;
+                    }
+                    else
+                    {
+                        std::istringstream iss(argv[1]);
+                        double b;
+                        iss >> b;
+
+                        if (connect(clientFd, (sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
+                        {
+                            std::cout << "CANNOT connect server\n";
+                            return 0;
+                        }
+
+                        std::ostrstream oss(buffSend, MAXBUF);
+                        oss << static_cast<char>(withdraw)
+                            << " " << token
+                            << " " << b;
+                        write(clientFd, buffSend, MAXBUF);
+                        recv(clientFd, buffRecv, MAXBUF, 0);
+                        if (buffRecv[0] == '0')
+                        {
+                            std::cout << "Failed\n";
+                            break;
+                        }
+                        std::cout << "Withdraw : " << b << std::endl;
+                    }
+                    break;
+
                 case logout:
                 {
                     logged = false;

@@ -54,6 +54,7 @@ public:
     double getbal(const std::string &uname) const;
     bool setbal(const std::string &uname, double b);
     bool addbal(const std::string &uname, double b);
+    bool redbal(const std::string &uname, double b);
     bool setPassword(const std::string &username, const std::string &password);
 
     // 商品管理

@@ -30,6 +30,16 @@ public:
 
     double getBalance() const { return balance; } // 获得余额
     void setBalance(double b) { balance = b; }    // 设置余额
+    void addBalance(double b) { balance += b; }   // 增加余额
+    bool redBalance(double b)                     // 减少余额
+    {
+        if (balance > b)
+        {
+            balance -= b;
+            return true;
+        }
+        return false;
+    }
 
     std::string getName() const { return name; }               // 获得用户名
     void setName(const std::string &nm) { name = nm; }         // 设置用户名

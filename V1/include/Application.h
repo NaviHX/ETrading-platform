@@ -42,7 +42,8 @@ public:
         chpercent,
         chtpercent,
         quit,
-        setpw
+        setpw,
+        withdraw
     };
 
     bool isLogged() { return logged; }

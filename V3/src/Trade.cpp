@@ -711,15 +711,27 @@ bool Trade::setbal(const std::string &uname, double b)
 bool Trade::addbal(const std::string &uname, double b)
 {
     if (b < 0)
-    {
         return false;
-    }
     for (auto uit : userList)
     {
         if (uname.compare(uit->getName()) == 0)
         {
-            uit->setBalance(b + uit->getBalance());
+            // uit->setBalance(b + uit->getBalance());
+            uit->addBalance(b);
             return true;
+        }
+    }
+    return false;
+}
+
+bool Trade::redbal(const std::string &uname, double b)
+{
+    for (auto uit : userList)
+    {
+        if (uname.compare(uit->getName()) == 0)
+        {
+            // uit->setBalance(b - uit->getBalance());
+            return uit->redBalance(b);
         }
     }
     return false;
@@ -1213,6 +1225,28 @@ int Trade::exec(const std::string &port)
             {
                 buffSend[0] = '1';
                 len++;
+                break;
+            }
+            break;
+
+        case 22:
+            iss >> t >> mon;
+            token = atoi(t.c_str());
+            name = tokenMap[token];
+            if (!redbal(name, mon))
+            {
+                buffSend[0] = '0';
+                len++;
+                break;
+            }
+            else
+            {
+                buffSend[0] = '1';
+                buffSend[1] = ' ';
+                len += 2;
+                double b = getbal(name);
+                memcpy(buffSend + len, &b, sizeof(b));
+                len += sizeof(b);
                 break;
             }
             break;
