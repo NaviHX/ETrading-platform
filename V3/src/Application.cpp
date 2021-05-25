@@ -28,6 +28,30 @@ int Application::exec(const std::string &ip, const std::string &port)
     serverAddr.sin_port = htons(atoi(port.c_str()));
     inet_aton(ip.c_str(), &serverAddr.sin_addr);
 
+    std::cout << "ETrading-Platform V3 Client\n"
+              << "help : help info\n"
+              << "regis <name> <password> <0/1> : register a user\n"
+              << "login <name> <password> : login as a user\n"
+              << "logout : logout\n"
+              << "addcart <commdity name> <number> : add a commdity into cart\n"
+              << "delcart <commdity name> : delete a item\n"
+              << "chcart <commdity name> <number> : change quantity in cart\n"
+              << "clrcart : clear cart\n"
+              << "genorder : generate the order\n"
+              << "delorder : delete the order\n"
+              << "settle : settle the order\n"
+              << "recharge <number> : recharge\n"
+              << "ls <commdity name> <commdity type> : list commdity\n"
+              << "lsall : list all commdity\n"
+              << "lsu <username> : list a user info\n"
+              << "addcomm <commdity name> <commdity type> <price> <description>: add a commdity\n"
+              << "chquantity <commdity name> <number> : change quantity\n"
+              << "chpr <commdity name> <number> : change price\n"
+              << "chpercent <commdity name> <number> : change discount\n"
+              << "chtpercent <type> <number>\n"
+              << "help : help info\n"
+              << "quit : quit\n";
+
     std::map<std::string, strValue> strMap;
 
     strMap["help"] = strValue::help;
@@ -840,7 +864,7 @@ int Application::exec(const std::string &ip, const std::string &port)
         }
         close(clientFd);
         if (isLogged())
-            std::cout << "[ " << uname << " ]\n";
+            std::cout << uname << "@" << ip << ":" << port << " ";
         std::cout << "> ";
     }
     return 0;

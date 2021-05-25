@@ -2,13 +2,15 @@
 #include <fstream>
 #include "Trade.h"
 
-bool Trade::readUserFile(const std::string &fp)
+bool Trade::readUserFile(bool quiet, const std::string &fp)
 {
-    std::cout << "Reading user data file : " << fp << " ... ";
+    if (!quiet)
+        std::cout << "Reading user data file : " << fp << " ... ";
     std::ifstream f(fp, std::ios::in);
     if (!f.good())
     {
-        std::cout << fp << ": not exist\n";
+        if (!quiet)
+            std::cout << fp << ": not exist\n";
         return false;
     }
     std::string tempname, temppassword;
@@ -34,13 +36,15 @@ bool Trade::readUserFile(const std::string &fp)
         f >> tempname;
     }
     f.close();
-    std::cout << "Done\n";
+    if (!quiet)
+        std::cout << "Done\n";
     return true;
 }
 
-bool Trade::saveUserFile(const std::string &fp) const
+bool Trade::saveUserFile(bool quiet, const std::string &fp) const
 {
-    std::cout << "Saving user data file : " << fp << " ... ";
+    if (!quiet)
+        std::cout << "Saving user data file : " << fp << " ... ";
     std::ofstream f(fp, std::ios::out);
     for (auto it : userList)
     {
@@ -65,17 +69,20 @@ bool Trade::saveUserFile(const std::string &fp) const
           << " " << it->getBalance() << std::endl;
     }
     f.close();
-    std::cout << "Done\n";
+    if (!quiet)
+        std::cout << "Done\n";
     return true;
 }
 
-bool Trade::readCommFile(const std::string &fp)
+bool Trade::readCommFile(bool quiet, const std::string &fp)
 {
-    std::cout << "Reading commdity data file : " << fp << " ... ";
+    if (!quiet)
+        std::cout << "Reading commdity data file : " << fp << " ... ";
     std::ifstream f(fp, std::ios::in);
     if (!f.good())
     {
-        std::cout << fp << ": not exist\n";
+        if (!quiet)
+            std::cout << fp << ": not exist\n";
         return false;
     }
     std::string tempname, temptype, tempowner, desc;
@@ -107,13 +114,15 @@ bool Trade::readCommFile(const std::string &fp)
         f >> tempname;
     }
     f.close();
-    std::cout << "Done\n";
+    if (!quiet)
+        std::cout << "Done\n";
     return true;
 }
 
-bool Trade::saveCommFile(const std::string &fp) const
+bool Trade::saveCommFile(bool quiet, const std::string &fp) const
 {
-    std::cout << "Saving commdity data file : " << fp << " ... ";
+    if (!quiet)
+        std::cout << "Saving commdity data file : " << fp << " ... ";
     std::ofstream f(fp, std::ios::out);
     for (const auto &it : commList)
     {
@@ -127,7 +136,8 @@ bool Trade::saveCommFile(const std::string &fp) const
         // delete it;
     }
     f.close();
-    std::cout << "Done\n";
+    if (!quiet)
+        std::cout << "Done\n";
     return true;
 }
 

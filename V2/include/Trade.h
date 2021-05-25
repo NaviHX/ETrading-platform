@@ -40,10 +40,10 @@ private:
     std::map<std::string, commType> commMap;
 
 public:
-    bool readUserFile(const std::string &fp = "userdata.txt");
-    bool saveUserFile(const std::string &fp = "userdata.txt") const;
-    bool readCommFile(const std::string &fp = "commdata.txt");
-    bool saveCommFile(const std::string &fp = "commdata.txt") const;
+    bool readUserFile(bool quiet = false, const std::string &fp = "userdata.txt");
+    bool saveUserFile(bool quiet = false, const std::string &fp = "userdata.txt") const;
+    bool readCommFile(bool quiet = false, const std::string &fp = "commdata.txt");
+    bool saveCommFile(bool quiet = false, const std::string &fp = "commdata.txt") const;
 
     // 用户管理
     bool haveUser(const std::string &username) const;
