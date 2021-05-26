@@ -16,12 +16,12 @@
 class Application
 {
 private:
-    std::string uname;
-    std::string password;
+    std::string uname; // 用户名
+    std::string password; // 密码
     // int token; // 远程服务器使用，防止每个报文中都有用户名与密码
 
-    Trade *trade;
-    bool logged;
+    Trade *trade; // 购物平台
+    bool logged; // 是否登录
 
 public:
     enum strValue
@@ -59,9 +59,9 @@ public:
     std::string getPassword() { return password; }
     void setPassword(const std::string &pwd) { password = pwd; }
 
-    int exec();
+    int exec(); // 进入事件循环
 
-    static std::vector<std::string> splitStr(const std::string &str, const char split = ' ');
+    static std::vector<std::string> splitStr(const std::string &str, const char split = ' '); // 分割命令
 
     Application(const std::string &un, const std::string &pwd);
 };

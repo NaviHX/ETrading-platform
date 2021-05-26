@@ -103,6 +103,9 @@ int Application::exec()
                               << "quit : quit\n";
                     break;
 
+                /* 
+                    检查命令格式,各参数是否合法,然后调用购物系统的响应函数
+                 */
                 case addcart:
                 {
                     if (!isLogged())
@@ -110,16 +113,31 @@ int Application::exec()
                         std::cout << "NOT Logged\n";
                         break;
                     }
+                    // 判断参数数量是否符合要求
                     if (argv.size() < 3)
                     {
                         std::cout << "INVALID Format\n";
                         break;
                     }
 
+                    // 将字符串转化为所需的数据类型
                     std::istringstream iss(argv[2]);
                     int q;
-                    iss >> q;
-
+                    // 检查能否作为数字输入
+                    if (!(iss >> q))
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+                    if (iss >> oper)
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+                    // 检查输入完毕后是否有剩余字符未被读取
+                    // 例如:
+                    // 要求输入int变量,用户输入: 123.45
+                    // 读入123后,还剩下.45,不符合要求,实际输入的为double/float类型
                     if (!trade->addCart(uname, argv[1], q))
                     {
                         std::cout << "Failed\n";
@@ -218,7 +236,16 @@ int Application::exec()
 
                     std::istringstream iss(argv[2]);
                     int q;
-                    iss >> q;
+                    if (!(iss >> q))
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+                    if (iss >> oper)
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
 
                     if (!trade->changeCart(uname, argv[1], q))
                     {
@@ -237,7 +264,17 @@ int Application::exec()
                     }
                     std::istringstream iss(argv[3]);
                     int t;
-                    iss >> t;
+                    if (!(iss >> t))
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+                    if (iss >> oper)
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+
                     if (trade->addUser(argv[1], argv[2], t))
                     {
                         std::cout << "User [ " << argv[1] << " ] added\n"
@@ -301,7 +338,17 @@ int Application::exec()
                     }
                     std::istringstream iss(argv[3]);
                     double p;
-                    iss >> p;
+                    if (!(iss >> p))
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+                    if (iss >> oper)
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+
                     if (!trade->addComm(argv[1], uname, argv[2], p, argv[4]))
                     {
                         std::cout << "Failed\n";
@@ -323,7 +370,17 @@ int Application::exec()
                     }
                     std::istringstream iss(argv[2]);
                     int q;
-                    iss >> q;
+                    if (!(iss >> q))
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+                    if (iss >> oper)
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+
                     if (!trade->changeQuantity(argv[1], uname, q))
                     {
                         std::cout << "Failed\n";
@@ -345,7 +402,17 @@ int Application::exec()
                     }
                     std::istringstream iss(argv[2]);
                     double p;
-                    iss >> p;
+                    if (!(iss >> p))
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+                    if (iss >> oper)
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+
                     if (!trade->setPrice(argv[1], uname, p))
                     {
                         std::cout << "Failed\n";
@@ -367,7 +434,17 @@ int Application::exec()
                     }
                     std::istringstream iss(argv[2]);
                     double p;
-                    iss >> p;
+                    if (!(iss >> p))
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+                    if (iss >> oper)
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+
                     if (!trade->setPercent(argv[1], uname, p))
                     {
                         std::cout << "Failed\n";
@@ -390,7 +467,17 @@ int Application::exec()
                     }
                     std::istringstream iss(argv[2]);
                     double p;
-                    iss >> p;
+                    if (!(iss >> p))
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+                    if (iss >> oper)
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+
                     if (!trade->setPercent(p, argv[1], uname))
                     {
                         std::cout << "Failed\n";
@@ -440,7 +527,17 @@ int Application::exec()
                     {
                         std::istringstream iss(argv[1]);
                         double b;
-                        iss >> b;
+                        if (!(iss >> b))
+                        {
+                            std::cout << "INVALID Format\n";
+                            break;
+                        }
+                        if (iss >> oper)
+                        {
+                            std::cout << "INVALID Format\n";
+                            break;
+                        }
+
                         if (!trade->addbal(uname, b))
                         {
                             std::cout << "Failed\n";
@@ -458,7 +555,17 @@ int Application::exec()
                     {
                         std::istringstream iss(argv[1]);
                         double b;
-                        iss >> b;
+                        if (!(iss >> b))
+                        {
+                            std::cout << "INVALID Format\n";
+                            break;
+                        }
+                        if (iss >> oper)
+                        {
+                            std::cout << "INVALID Format\n";
+                            break;
+                        }
+
                         if (!trade->redbal(uname, b))
                         {
                             std::cout << "Failed\n";
