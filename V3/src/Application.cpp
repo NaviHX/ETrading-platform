@@ -138,22 +138,35 @@ int Application::exec(const std::string &ip, const std::string &port)
                         break;
                     }
 
+                    // 类型转换 str->数字
                     std::istringstream iss(argv[2]);
                     int q;
-                    iss >> q;
+                    if (!(iss >> q))
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+                    if (iss >> oper)
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
 
+                    // 连接服务器
                     if (connect(clientFd, (sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
                     {
                         std::cout << "CANNOT connect server\n";
                         return 0;
                     }
 
+                    // 构造报文
                     std::ostrstream oss(buffSend, MAXBUF);
                     oss << static_cast<char>(addcart)
                         << " " << token
                         << " " << argv[1]
                         << " " << q;
 
+                    // 发送并接收响应
                     write(clientFd, buffSend, MAXBUF);
                     recv(clientFd, buffRecv, MAXBUF, 0);
 
@@ -338,7 +351,16 @@ int Application::exec(const std::string &ip, const std::string &port)
 
                     std::istringstream iss(argv[2]);
                     int q;
-                    iss >> q;
+                    if (!(iss >> q))
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+                    if (iss >> oper)
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
 
                     if (connect(clientFd, (sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
                     {
@@ -372,7 +394,16 @@ int Application::exec(const std::string &ip, const std::string &port)
                     }
                     std::istringstream iss(argv[3]);
                     int t;
-                    iss >> t;
+                    if (!(iss >> t))
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+                    if (iss >> oper)
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
 
                     if (connect(clientFd, (sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
                     {
@@ -510,7 +541,16 @@ int Application::exec(const std::string &ip, const std::string &port)
                     }
                     std::istringstream iss(argv[3]);
                     double p;
-                    iss >> p;
+                    if (!(iss >> p))
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+                    if (iss >> oper)
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
 
                     if (connect(clientFd, (sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
                     {
@@ -550,7 +590,16 @@ int Application::exec(const std::string &ip, const std::string &port)
                     }
                     std::istringstream iss(argv[2]);
                     int q;
-                    iss >> q;
+                    if (!(iss >> q))
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+                    if (iss >> oper)
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
 
                     if (connect(clientFd, (sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
                     {
@@ -588,7 +637,16 @@ int Application::exec(const std::string &ip, const std::string &port)
                     }
                     std::istringstream iss(argv[2]);
                     double p;
-                    iss >> p;
+                    if (!(iss >> p))
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+                    if (iss >> oper)
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
 
                     if (connect(clientFd, (sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
                     {
@@ -626,7 +684,16 @@ int Application::exec(const std::string &ip, const std::string &port)
                     }
                     std::istringstream iss(argv[2]);
                     double p;
-                    iss >> p;
+                    if (!(iss >> p))
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+                    if (iss >> oper)
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
 
                     if (connect(clientFd, (sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
                     {
@@ -665,7 +732,16 @@ int Application::exec(const std::string &ip, const std::string &port)
                     }
                     std::istringstream iss(argv[2]);
                     double p;
-                    iss >> p;
+                    if (!(iss >> p))
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+                    if (iss >> oper)
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
 
                     if (connect(clientFd, (sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
                     {
@@ -777,7 +853,16 @@ int Application::exec(const std::string &ip, const std::string &port)
                     {
                         std::istringstream iss(argv[1]);
                         double b;
-                        iss >> b;
+                        if (!(iss >> b))
+                        {
+                            std::cout << "INVALID Format\n";
+                            break;
+                        }
+                        if (iss >> oper)
+                        {
+                            std::cout << "INVALID Format\n";
+                            break;
+                        }
 
                         if (connect(clientFd, (sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
                         {
@@ -808,7 +893,16 @@ int Application::exec(const std::string &ip, const std::string &port)
                     {
                         std::istringstream iss(argv[1]);
                         double b;
-                        iss >> b;
+                        if (!(iss >> b))
+                        {
+                            std::cout << "INVALID Format\n";
+                            break;
+                        }
+                        if (iss >> oper)
+                        {
+                            std::cout << "INVALID Format\n";
+                            break;
+                        }
 
                         if (connect(clientFd, (sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
                         {

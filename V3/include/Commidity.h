@@ -24,36 +24,36 @@ private:
     std::string description;
 
 public:
-    virtual double getPrice() const { return price * percent; }
-    double getOriginPrice() const { return price; }
-    void setOriginPrice(double p) { price = p; }
+    virtual double getPrice() const { return price * percent; } // 获得计算折扣后的价格
+    double getOriginPrice() const { return price; }             // 获得原价
+    void setOriginPrice(double p) { price = p; }                // 设置原价
 
-    int getQuantity() const { return quantity; }
-    void setQuantity(int q) { quantity = q; }
+    int getQuantity() const { return quantity; } // 获得数量
+    void setQuantity(int q) { quantity = q; }    // 设置数量
 
-    double getPercent() const { return percent; }
-    void setPercent(double p) { percent = p; }
-    virtual double getRealDiscount() const { return getPercent(); }
+    double getPercent() const { return percent; }                   // 获得折扣
+    void setPercent(double p) { percent = p; }                      // 设置折扣
+    virtual double getRealDiscount() const { return getPercent(); } // 综合计算品种折扣+该商品折扣
 
-    std::string getComType() const { return comType; }
-    void setComType(const std::string &t) { comType = t; }
+    std::string getComType() const { return comType; }     // 获得商品类型
+    void setComType(const std::string &t) { comType = t; } // 设置商品类型
 
-    std::string getName() const { return name; }
-    void setName(const std::string &n) { name = n; }
+    std::string getName() const { return name; }     // 获得商品名称
+    void setName(const std::string &n) { name = n; } // 设置商品名称
 
-    std::string getOwner() const { return owner; }
-    std::string getDesc() const { return description; }
+    std::string getOwner() const { return owner; }      // 获得所有人
+    std::string getDesc() const { return description; } // 设置所有人
 
     Commdity(double pr, double pe, int q, const std::string &ct, const std::string &n, const std::string &own, const std::string &desc);
 
-    bool buy(int count);
-    bool isType(const std::string &t);
+    bool buy(int count);               // 购买商品
+    bool isType(const std::string &t); // 判断商品类型
 };
 
 class Food : public Commdity
 {
 protected:
-    static double discount;
+    static double discount; // 该种类商品共享的折扣
 
 public:
     virtual double getPrice() const { return getOriginPrice() * getPercent() * discount; }
@@ -67,7 +67,7 @@ public:
 class Book : public Commdity
 {
 protected:
-    static double discount;
+    static double discount; // 该种类商品共享的折扣
 
 public:
     virtual double getPrice() const { return getOriginPrice() * getPercent() * discount; }
@@ -81,7 +81,7 @@ public:
 class Cloth : public Commdity
 {
 protected:
-    static double discount;
+    static double discount; // 该种类商品共享的折扣
 
 public:
     virtual double getPrice() const { return getOriginPrice() * getPercent() * discount; }
