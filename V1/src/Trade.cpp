@@ -545,6 +545,8 @@ bool Trade::setbal(const std::string &uname, double b)
 
 bool Trade::addbal(const std::string &uname, double b)
 {
+    if (b < 0)
+        return false;
     for (auto uit : userList)
     {
         if (uname.compare(uit->getName()) == 0)
