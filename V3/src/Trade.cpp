@@ -857,9 +857,9 @@ std::string Trade::getOrderInfo(const std::string &uname) const
             auto cit = dynamic_cast<Consumer *>(uit);
             if (cit->haveOrder)
             {
-                for(auto &p : cit->order)
+                for (auto &p : cit->order)
                 {
-                    oss<<"Name : "<<p.first<<" Num : "<<p.second<<std::endl;
+                    oss << "Name : " << p.first << " Num : " << p.second << std::endl;
                 }
             }
         }
@@ -878,7 +878,12 @@ int Trade::exec(const std::string &port)
     myAddr.sin_addr.s_addr = htonl(INADDR_ANY);
     myAddr.sin_port = htons(atoi(port.c_str()));
 
-    bind(serverFd, (sockaddr *)&myAddr, sizeof(myAddr));
+    int status = bind(serverFd, (sockaddr *)&myAddr, sizeof(myAddr));
+    if (status != 0)
+    {
+        std::cout << "BIND ERROR\n";
+        return status;
+    }
 
     listen(serverFd, 5);
 
@@ -1089,9 +1094,9 @@ int Trade::exec(const std::string &port)
                 double d = getSum(name);
                 memcpy(buffSend + len, &d, sizeof(d));
                 len += sizeof(d);
-                std::string info=getOrderInfo(name);
-                memcpy(buffSend + len,info.c_str(),info.size());
-                len+=info.size();
+                std::string info = getOrderInfo(name);
+                memcpy(buffSend + len, info.c_str(), info.size());
+                len += info.size();
                 break;
             }
 
