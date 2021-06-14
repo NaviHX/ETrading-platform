@@ -479,8 +479,14 @@ bool Trade::buy(const std::string &uname)
     {
         if (uname.compare(uit->getName()) == 0 && uit->getUserType() == User::Type::consumer)
         {
+            auto cit = dynamic_cast<Consumer *>(uit);
+
+            if (cit->haveOrder == false)
+                return false;
+
             double sum = dynamic_cast<Consumer *>(uit)->sum;
             auto order = dynamic_cast<Consumer *>(uit)->order;
+
             /*
             for (auto cit : cart)
             {
@@ -506,7 +512,6 @@ bool Trade::buy(const std::string &uname)
 
             uit->setBalance(uit->getBalance() - sum);
 
-            auto cit = dynamic_cast<Consumer *>(uit);
             cit->order.erase(cit->order.begin(), cit->order.end());
             cit->cart.erase(cit->cart.begin(), cit->cart.end());
 
@@ -558,9 +563,9 @@ bool Trade::delOrder(const std::string &uname)
     {
         if (uit->getName() == uname && uit->getUserType() == User::consumer && (dynamic_cast<Consumer *>(uit))->haveOrder == true)
         {
-            for (auto &itemPair : (dynamic_cast<Consumer *>(uit))->cart)
+            for (auto &itemPair : (dynamic_cast<Consumer *>(uit))->order)
             {
-                changeQuantity(itemPair.first, adminName, getPrice(itemPair.first) - itemPair.second);
+                changeQuantity(itemPair.first, adminName, getQuantity(itemPair.first) + itemPair.second);
             }
 
             auto cit = dynamic_cast<Consumer *>(uit);
@@ -818,6 +823,27 @@ double Trade::getSum(const std::string &uname) const
     return -1;
 }
 
+bool Trade::refreshOrder()
+{
+    for (auto uit : userList)
+    {
+        if (uit->getUserType() == User::Type::consumer)
+        {
+            auto cit = dynamic_cast<Consumer *>(uit);
+            clock_t now;
+            now=clock();
+
+            time_t orderTime = cit->getOrderTime();
+
+            if (cit->haveOrder == true && (now - orderTime) / CLOCKS_PER_SEC >= expireTime)
+            {
+                delOrder(cit->getName());
+            }
+        }
+    }
+    return true;
+}
+
 int Trade::exec(const std::string &port)
 {
 
@@ -855,6 +881,8 @@ int Trade::exec(const std::string &port)
         clientFd = accept(serverFd, (sockaddr *)&clientAddr, (socklen_t *)&addrLen);
 
         std::cout << "Accept a request\n";
+
+        refreshOrder();
 
         int ret = read(clientFd, buffRecv, MAXBUF);
 
@@ -1334,6 +1362,8 @@ int Trade::exec(const std::string &port)
         }
         send(clientFd, buffSend, len, 0);
         close(clientFd);
+
+        refreshOrder();
         saveCommFile(true);
         saveUserFile(true);
     }
@@ -1342,6 +1372,15 @@ int Trade::exec(const std::string &port)
 int Trade::keyGen(const std::string &name)
 {
     int ret = -1;
+
+    for (auto it : tokenMap)
+    {
+        if (it.second == name)
+        {
+            return it.first;
+        }
+    }
+
     if (tokenMap.size() == MAXMAP)
     {
         return ret;

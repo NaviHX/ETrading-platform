@@ -23,6 +23,8 @@
 const std::string adminName = "admin";
 const std::string adminPwd = "123456";
 
+const clock_t expireTime = 60;
+
 const int MAXBUF = 2048;
 const int MAXMAP = 128;
 
@@ -86,6 +88,8 @@ public:
     bool redCart(const std::string &uname, const std::string &name, int q);
     bool changeCart(const std::string &uname, const std::string &name, int q);
     bool delCart(const std::string &uname, const std::string &name);
+
+    bool refreshOrder(); // 根据时间刷新订单列表，删除超时订单
 
     ~Trade();
     Trade();

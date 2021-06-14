@@ -53,6 +53,8 @@ public:
 class Consumer : public User
 {
 private:
+    clock_t orderTime;
+
 public:
     std::vector<std::pair<std::string, int>> cart;
     std::vector<std::pair<std::string, int>> order;
@@ -64,6 +66,9 @@ public:
     std::vector<std::pair<std::string, int>> getCart() const { return cart; }
     bool addCart(std::string comId, int num); // 加入购物车
     bool redCart(std::string comId, int num); // 减少购物车
+
+    clock_t getOrderTime() const { return orderTime; }
+    void setOrderTime() { orderTime = clock(); }
 
     Consumer(const std::string &n, const std::string &pw, const double b);
     virtual ~Consumer() {}

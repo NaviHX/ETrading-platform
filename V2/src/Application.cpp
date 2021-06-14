@@ -74,6 +74,8 @@ int Application::exec()
     // while (std::cin >> oper)
     while (std::getline(std::cin, oper))
     {
+        trade->refreshOrder();
+
         auto argv = splitStr(oper);
         if (argv.size() > 0)
         {
@@ -629,6 +631,8 @@ int Application::exec()
                 std::cout << "ILLEGAL arg : " << argv[0] << " . Type help for more info" << std::endl;
             }
         }
+        trade->refreshOrder();
+
         trade->saveCommFile(true);
         trade->saveUserFile(true);
 

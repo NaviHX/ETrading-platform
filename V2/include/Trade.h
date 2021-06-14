@@ -23,6 +23,8 @@
 const std::string adminName = "admin";
 const std::string adminPwd = "123456";
 
+const clock_t expireTime = 60;
+
 class Trade
 {
 private:
@@ -56,6 +58,8 @@ public:
     bool addbal(const std::string &uname, double b);
     bool redbal(const std::string &uname, double b);
     bool setPassword(const std::string &username, const std::string &password);
+
+    bool refreshOrder(); // 根据时间刷新订单列表，删除超时订单
 
     // 商品管理
     bool haveComm(const std::string &name) const;
