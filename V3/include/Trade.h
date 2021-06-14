@@ -64,6 +64,7 @@ public:
     bool redbal(const std::string &uname, double b);
     bool setPassword(const std::string &username, const std::string &password);
     double getSum(const std::string &uname) const;
+    std::string getOrderInfo(const std::string &uname) const;
 
     // 商品管理
     bool haveComm(const std::string &name) const;

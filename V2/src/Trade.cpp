@@ -491,6 +491,8 @@ bool Trade::buy(const std::string &uname)
 
             cit->haveOrder = false;
 
+            std::cout<<"Balance : "<<getbal(uname)<<std::endl;
+
             return true;
         }
     }
@@ -527,6 +529,10 @@ bool Trade::genOrder(const std::string &uname)
             (dynamic_cast<Consumer *>(uit))->sum = sum;
             (dynamic_cast<Consumer *>(uit))->setOrderTime();
             std::cout << "Sum : " << sum << std::endl;
+            for (auto &p : cit->order)
+            {
+                std::cout << "Name : " << p.first << " Num : " << p.second << std::endl;
+            }
             return true;
         }
     }

@@ -274,6 +274,12 @@ int Application::exec(const std::string &ip, const std::string &port)
                     else
                     {
                         std::cout << "Sum : " << *(double *)(buffRecv + 2) << std::endl;
+                        unsigned i = 2 + sizeof(double);
+                        while (buffRecv[i] != '\0')
+                        {
+                            std::cout << buffRecv[i];
+                            i++;
+                        }
                     }
                     break;
                 }

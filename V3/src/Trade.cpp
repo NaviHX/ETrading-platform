@@ -831,7 +831,7 @@ bool Trade::refreshOrder()
         {
             auto cit = dynamic_cast<Consumer *>(uit);
             clock_t now;
-            now=clock();
+            now = clock();
 
             time_t orderTime = cit->getOrderTime();
 
@@ -842,6 +842,29 @@ bool Trade::refreshOrder()
         }
     }
     return true;
+}
+
+std::string Trade::getOrderInfo(const std::string &uname) const
+{
+    std::string ret = "";
+
+    std::ostringstream oss(ret);
+
+    for (auto uit : userList)
+    {
+        if (uit->getUserType() == User::Type::consumer)
+        {
+            auto cit = dynamic_cast<Consumer *>(uit);
+            if (cit->haveOrder)
+            {
+                for(auto &p : cit->order)
+                {
+                    oss<<"Name : "<<p.first<<" Num : "<<p.second<<std::endl;
+                }
+            }
+        }
+    }
+    return oss.str();
 }
 
 int Trade::exec(const std::string &port)
@@ -1066,6 +1089,9 @@ int Trade::exec(const std::string &port)
                 double d = getSum(name);
                 memcpy(buffSend + len, &d, sizeof(d));
                 len += sizeof(d);
+                std::string info=getOrderInfo(name);
+                memcpy(buffSend + len,info.c_str(),info.size());
+                len+=info.size();
                 break;
             }
 
