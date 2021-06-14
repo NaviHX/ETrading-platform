@@ -12,7 +12,7 @@ User::User(
 bool Consumer::addCart(std::string comId, int num)
 {
     bool added = false;
-    for (auto& it : cart)
+    for (auto &it : cart)
     {
         if (comId.compare(it.first) == 0)
         {
@@ -26,6 +26,23 @@ bool Consumer::addCart(std::string comId, int num)
         added = true;
     }
     return added;
+}
+
+bool Consumer::redCart(std::string comId, int num)
+{
+    bool flag = false;
+    for (auto &it : cart)
+    {
+        if (comId.compare(it.first) == 0)
+        {
+            if (it.second > num)
+            {
+                it.second -= num;
+                flag = true;
+            }
+        }
+    }
+    return flag;
 }
 
 Consumer::Consumer(const std::string &n, const std::string &pw, const double b) : User(n, pw, b)

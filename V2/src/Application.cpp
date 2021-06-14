@@ -15,12 +15,15 @@ Application::Application(const std::string &un, const std::string &pwd) : uname(
 
 int Application::exec()
 {
-    std::cout << "ETrading-Platform V2\n"
+    std::cout << "#====================#\n"
+              << " ETrading-Platform V2\n"
+              << "#====================#\n"
               << "help : help info\n"
               << "regis <name> <password> <0/1> : register a user\n"
               << "login <name> <password> : login as a user\n"
               << "logout : logout\n"
               << "addcart <commdity name> <number> : add a commdity into cart\n"
+              << "redcart <commdity name> <number> : reduce quantity\n"
               << "delcart <commdity name> : delete a item\n"
               << "chcart <commdity name> <number> : change quantity in cart\n"
               << "clrcart : clear cart\n"
@@ -64,6 +67,7 @@ int Application::exec()
     strMap["quit"] = strValue::quit;
     strMap["setpw"] = strValue::setpw;
     strMap["withdraw"] = strValue::withdraw;
+    strMap["redcart"] = strValue::redcart;
 
     std::string oper;
     std::cout << "> ";
@@ -574,6 +578,46 @@ int Application::exec()
                         std::cout << "Withdraw : " << b << std::endl;
                     }
                     break;
+
+                case redcart:
+                {
+                    if (!isLogged())
+                    {
+                        std::cout << "NOT Logged\n";
+                        break;
+                    }
+                    // 判断参数数量是否符合要求
+                    if (argv.size() < 3)
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+
+                    // 将字符串转化为所需的数据类型
+                    std::istringstream iss(argv[2]);
+                    int q;
+                    // 检查能否作为数字输入
+                    if (!(iss >> q))
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+                    if (iss >> oper)
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+                    // 检查输入完毕后是否有剩余字符未被读取
+                    // 例如:
+                    // 要求输入int变量,用户输入: 123.45
+                    // 读入123后,还剩下.45,不符合要求,实际输入的为double/float类型
+                    if (!trade->redCart(uname, argv[1], q))
+                    {
+                        std::cout << "Failed\n";
+                        break;
+                    }
+                    break;
+                }
 
                 default:
                     std::cout << "ILLEGAL arg : " << argv[0] << " . Type help for more info" << std::endl;

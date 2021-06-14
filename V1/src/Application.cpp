@@ -16,7 +16,9 @@ Application::Application(const std::string &un, const std::string &pwd) : uname(
 int Application::exec()
 {
     // 输出帮助信息
-    std::cout << "ETrading-Platform V1\n"
+    std::cout << "#====================#\n"
+              << " ETrading-Platform V1\n"
+              << "#====================#\n"
               << "help : help info\n"
               << "regis <name> <password> <0/1> : register a user\n"
               << "login <name> <password> : login as a user\n"
@@ -38,7 +40,7 @@ int Application::exec()
               << "chpercent <commdity name> <number> : change discount\n"
               << "chtpercent <type> <number>\n"
               << "help : help info\n"
-              << "quit : quit\n";
+              << "quit : logout and quit\n";
 
     // 将命令映射为枚举
     std::map<std::string, strValue> strMap;

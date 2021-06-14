@@ -21,7 +21,18 @@ bool Trade::readUserFile(bool quiet, const std::string &fp)
     if (!f.good())
     {
         if (!quiet)
+        {
             std::cout << fp << ": not exist\n";
+            std::string temp;
+            std::cout << "Continue? (Y/n)";
+            std::cin >> temp;
+            if (temp[0] == 'y' || temp[0] == 'Y')
+                return false;
+            else
+            {
+                exit(0);
+            }
+        }
         return false;
     }
     std::string tempname, temppassword;
@@ -92,10 +103,23 @@ bool Trade::readCommFile(bool quiet, const std::string &fp)
     std::ifstream f(fp, std::ios::in);
     if (!f.good())
     {
-        if (!quiet)
-            std::cout << fp << ": not exist\n";
-        return false;
+        std::cout << fp << ": not exist\n";
+        std::string temp;
+        std::cout << "Continue? (Y/n)";
+        std::cin >> temp;
+        if (temp[0] == 'y' || temp[0] == 'Y')
+            return false;
+        else
+        {
+            exit(0);
+        }
     }
+    double bd, fd, cd;
+    f >> bd >> fd >> cd;
+    Book::setDiscount(bd);
+    Food::setDiscount(fd);
+    Cloth::setDiscount(cd);
+
     std::string tempname, temptype, tempowner, desc;
     double tempprice, temppercent;
     int quantity;
@@ -135,6 +159,7 @@ bool Trade::saveCommFile(bool quiet, const std::string &fp) const
     if (!quiet)
         std::cout << "Saving commdity data file : " << fp << " ... ";
     std::ofstream f(fp, std::ios::out);
+    f << Book::getDiscount() << " " << Food::getDiscount() << " " << Cloth::getDiscount() << std::endl;
     for (const auto &it : commList)
     {
         f << it->getName()
@@ -661,6 +686,26 @@ bool Trade::addCart(const std::string &uname, const std::string &name, int q)
                 auto it = dynamic_cast<Consumer *>(uit);
                 it->addCart(name, q);
                 return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool Trade::redCart(const std::string &uname, const std::string &name, int q)
+{
+    if (q < 0)
+    {
+        return false;
+    }
+    if (haveComm(name) && haveUser(uname))
+    {
+        for (auto uit : userList)
+        {
+            if (uname.compare(uit->getName()) == 0 && uit->getUserType() == User::Type::consumer)
+            {
+                auto it = dynamic_cast<Consumer *>(uit);
+                return it->redCart(name, q);
             }
         }
     }
@@ -1239,6 +1284,7 @@ int Trade::exec(const std::string &port)
             }
             break;
 
+        // withdraw
         case 22:
             iss >> t >> mon;
             token = atoi(t.c_str());
@@ -1257,6 +1303,31 @@ int Trade::exec(const std::string &port)
                 double b = getbal(name);
                 memcpy(buffSend + len, &b, sizeof(b));
                 len += sizeof(b);
+                break;
+            }
+            break;
+
+        // redcart
+        case 23:
+            iss >> t >> cname >> num;
+            token = atoi(t.c_str());
+            name = tokenMap[token];
+            if (!haveComm(cname))
+            {
+                buffSend[0] = '0';
+                len++;
+                break;
+            }
+            if (!redCart(name, cname, num))
+            {
+                buffSend[0] = '0';
+                len++;
+                break;
+            }
+            else
+            {
+                buffSend[0] = '1';
+                len++;
                 break;
             }
             break;

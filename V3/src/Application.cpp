@@ -28,7 +28,9 @@ int Application::exec(const std::string &ip, const std::string &port)
     serverAddr.sin_port = htons(atoi(port.c_str()));
     inet_aton(ip.c_str(), &serverAddr.sin_addr);
 
-    std::cout << "ETrading-Platform V3 Client\n"
+    std::cout << "#====================#\n"
+              << " ETrading-Platform V3 Client\n"
+              << "#====================#\n"
               << "help : help info\n"
               << "regis <name> <password> <0/1> : register a user\n"
               << "login <name> <password> : login as a user\n"
@@ -77,6 +79,7 @@ int Application::exec(const std::string &ip, const std::string &port)
     strMap["quit"] = strValue::quit;
     strMap["setpw"] = strValue::setpw;
     strMap["withdraw"] = strValue::withdraw;
+    strMap["redcart"] = strValue::redcart;
 
     char buffRecv[MAXBUF];
     char buffSend[MAXBUF];
@@ -106,6 +109,7 @@ int Application::exec(const std::string &ip, const std::string &port)
                               << "login <name> <password> : login as a user\n"
                               << "logout : logout\n"
                               << "addcart <commdity name> <number> : add a commdity into cart\n"
+                              << "redcart <commdity name> <number> : reduce quantity\n"
                               << "delcart <commdity name> : delete a item\n"
                               << "chcart <commdity name> <number> : change quantity in cart\n"
                               << "clrcart : clear cart\n"
@@ -945,6 +949,61 @@ int Application::exec(const std::string &ip, const std::string &port)
                     recv(clientFd, buffRecv, MAXBUF, 0);
                 }
                 break;
+
+                case redcart:
+                {
+                    if (!isLogged())
+                    {
+                        std::cout << "NOT Logged\n";
+                        break;
+                    }
+                    if (argv.size() < 3)
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+
+                    // 类型转换 str->数字
+                    std::istringstream iss(argv[2]);
+                    int q;
+                    if (!(iss >> q))
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+                    if (iss >> oper)
+                    {
+                        std::cout << "INVALID Format\n";
+                        break;
+                    }
+
+                    // 连接服务器
+                    if (connect(clientFd, (sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
+                    {
+                        std::cout << "CANNOT connect server\n";
+                        return 0;
+                    }
+
+                    // 构造报文
+                    std::ostrstream oss(buffSend, MAXBUF);
+                    oss << static_cast<char>(redcart)
+                        << " " << token
+                        << " " << argv[1]
+                        << " " << q;
+
+                    // 发送并接收响应
+                    write(clientFd, buffSend, MAXBUF);
+                    recv(clientFd, buffRecv, MAXBUF, 0);
+
+                    std::istringstream recs(buffRecv);
+
+                    if (buffRecv[0] == '0')
+                    {
+                        std::cout << "Failed\n";
+                        break;
+                    }
+                    break;
+                }
 
                 default:
                     std::cout << "ILLEGAL arg : " << argv[0] << " . Type help for more info" << std::endl;

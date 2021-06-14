@@ -48,7 +48,8 @@ public:
         chtpercent,
         quit,
         setpw,
-        withdraw
+        withdraw,
+        redcart
     };
 
     bool isLogged() { return logged; }

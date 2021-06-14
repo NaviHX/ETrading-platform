@@ -63,6 +63,7 @@ public:
     virtual Type getUserType() override { return Type::consumer; }
     std::vector<std::pair<std::string, int>> getCart() const { return cart; }
     bool addCart(std::string comId, int num); // 加入购物车
+    bool redCart(std::string comId, int num); // 减少购物车
 
     Consumer(const std::string &n, const std::string &pw, const double b);
     virtual ~Consumer() {}
