@@ -1408,7 +1408,7 @@ int Trade::keyGen(const std::string &name)
     {
         if (it.second == name)
         {
-            return it.first;
+            return -1;
         }
     }
 
