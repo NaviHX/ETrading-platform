@@ -4,3 +4,5 @@ commdata.txt
 userdata.txt
 commmd5.txt
 usermd5.txt
+bin/
+lib/
