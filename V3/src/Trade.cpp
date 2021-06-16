@@ -962,7 +962,7 @@ int Trade::exec(const std::string &port)
         char oper;
         oper = buffRecv[0];
 
-        std::cout << "oper : " << oper << std::endl;
+        std::cout << "oper : " << oper + '0' << std::endl;
 
         std::string name, pwd, type, t, cname;
         int token;
