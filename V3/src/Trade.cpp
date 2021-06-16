@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include "Trade.h"
+#include "Filemd5.h"
 
 #include <unistd.h>
 #include <stdio.h>
@@ -13,7 +14,7 @@
 #include <sstream>
 #include <strstream>
 
-bool Trade::readUserFile(bool quiet, const std::string &fp)
+bool Trade::readUserFile(bool quiet, const std::string &fp, const std::string &sumfp)
 {
     if (!quiet)
         std::cout << "Reading user data file : " << fp << " ... ";
@@ -35,6 +36,26 @@ bool Trade::readUserFile(bool quiet, const std::string &fp)
         }
         return false;
     }
+
+    bool check = Filemd5::verifyMd5Sum(fp, sumfp);
+    if (!check)
+    {
+        if (!quiet)
+        {
+            std::cout << fp << ": verification failed\n";
+            std::string temp;
+            std::cout << "Continue? (Y/n)";
+            std::cin >> temp;
+            if (temp[0] == 'y' || temp[0] == 'Y')
+                return false;
+            else
+            {
+                exit(0);
+            }
+        }
+        return false;
+    }
+
     std::string tempname, temppassword;
     int temptype, tempbal;
     f >> tempname;
@@ -63,7 +84,7 @@ bool Trade::readUserFile(bool quiet, const std::string &fp)
     return true;
 }
 
-bool Trade::saveUserFile(bool quiet, const std::string &fp) const
+bool Trade::saveUserFile(bool quiet, const std::string &fp, const std::string &sumfp) const
 {
     if (!quiet)
         std::cout << "Saving user data file : " << fp << " ... ";
@@ -91,12 +112,13 @@ bool Trade::saveUserFile(bool quiet, const std::string &fp) const
           << " " << it->getBalance() << std::endl;
     }
     f.close();
+    Filemd5::writeMd5Sum(fp, sumfp);
     if (!quiet)
         std::cout << "Done\n";
     return true;
 }
 
-bool Trade::readCommFile(bool quiet, const std::string &fp)
+bool Trade::readCommFile(bool quiet, const std::string &fp, const std::string &sumfp)
 {
     if (!quiet)
         std::cout << "Reading commdity data file : " << fp << " ... ";
@@ -113,6 +135,24 @@ bool Trade::readCommFile(bool quiet, const std::string &fp)
         {
             exit(0);
         }
+    }
+    bool check = Filemd5::verifyMd5Sum(fp, sumfp);
+    if (!check)
+    {
+        if (!quiet)
+        {
+            std::cout << fp << ": verification failed\n";
+            std::string temp;
+            std::cout << "Continue? (Y/n)";
+            std::cin >> temp;
+            if (temp[0] == 'y' || temp[0] == 'Y')
+                return false;
+            else
+            {
+                exit(0);
+            }
+        }
+        return false;
     }
     double bd, fd, cd;
     f >> bd >> fd >> cd;
@@ -154,7 +194,7 @@ bool Trade::readCommFile(bool quiet, const std::string &fp)
     return true;
 }
 
-bool Trade::saveCommFile(bool quiet, const std::string &fp) const
+bool Trade::saveCommFile(bool quiet, const std::string &fp, const std::string &sumfp) const
 {
     if (!quiet)
         std::cout << "Saving commdity data file : " << fp << " ... ";
@@ -172,6 +212,7 @@ bool Trade::saveCommFile(bool quiet, const std::string &fp) const
         // delete it;
     }
     f.close();
+    Filemd5::writeMd5Sum(fp, sumfp);
     if (!quiet)
         std::cout << "Done\n";
     return true;
