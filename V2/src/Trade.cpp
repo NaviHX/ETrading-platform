@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <time.h>
 #include "Trade.h"
 #include "Filemd5.h"
 
@@ -840,12 +841,12 @@ bool Trade::refreshOrder()
         if (uit->getUserType() == User::Type::consumer)
         {
             auto cit = dynamic_cast<Consumer *>(uit);
-            clock_t now;
-            now = clock();
+            time_t now;
+            now = time(NULL);
 
-            clock_t orderTime = cit->getOrderTime();
+            time_t orderTime = cit->getOrderTime();
 
-            if (cit->haveOrder == true && (now - orderTime) / CLOCKS_PER_SEC >= expireTime)
+            if (cit->haveOrder == true && (now - orderTime) >= expireTime)
             {
                 delOrder(cit->getName());
             }

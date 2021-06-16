@@ -10,6 +10,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <ctime>
 
 #include <sstream>
 #include <strstream>
@@ -871,12 +872,12 @@ bool Trade::refreshOrder()
         if (uit->getUserType() == User::Type::consumer)
         {
             auto cit = dynamic_cast<Consumer *>(uit);
-            clock_t now;
-            now = clock();
+            time_t now;
+            now = time(NULL);
 
             time_t orderTime = cit->getOrderTime();
 
-            if (cit->haveOrder == true && (now - orderTime) / CLOCKS_PER_SEC >= expireTime)
+            if (cit->haveOrder == true && (now - orderTime) >= expireTime)
             {
                 delOrder(cit->getName());
             }
