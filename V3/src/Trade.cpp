@@ -362,6 +362,29 @@ std::string Trade::listComm(const std::string &name, const std::string &comType,
     return ret;
 }
 
+std::string Trade::listCart(const std::string &uname)
+{
+    std::string ret;
+    char buff[MAXBUF];
+    memset(buff, 0, MAXBUF);
+    std::ostrstream oss(buff, MAXBUF);
+
+    for (auto uit : userList)
+    {
+        if (uit->getUserType() == User::Type::consumer && uname.compare(uit->getName()) == 0)
+        {
+            auto c = dynamic_cast<Consumer *>(uit);
+            for (auto &p : c->cart)
+            {
+                oss << "Name : " << p.first << " Num : " << p.second << std::endl;
+            }
+            ret = buff;
+            return ret;
+        }
+    }
+    return "";
+}
+
 bool Trade::addComm(const std::string &name, const std::string &uname, const std::string &comType, double price, const std::string &desc)
 {
     if (price < 0)
@@ -590,7 +613,9 @@ bool Trade::genOrder(const std::string &uname)
             }
 
             (dynamic_cast<Consumer *>(uit))->order = (dynamic_cast<Consumer *>(uit))->cart;
+            cit->cart.erase(cit->cart.begin(), cit->cart.end());
             (dynamic_cast<Consumer *>(uit))->haveOrder = true;
+            cit->setOrderTime();
             (dynamic_cast<Consumer *>(uit))->sum = sum;
             std::cout << "Sum : " << sum << std::endl;
             return true;
@@ -1431,6 +1456,20 @@ int Trade::exec(const std::string &port)
                 len++;
                 break;
             }
+            break;
+
+        // lscart
+        case 24:
+            iss >> t;
+            token = atoi(t.c_str());
+            name = tokenMap[token];
+
+            std::string ret = listCart(name);
+
+            buffSend[0] = '1';
+            buffSend[1] = ' ';
+            memcpy(buffSend + 2, ret.c_str(), ret.size());
+            len += 2 + ret.size();
             break;
         }
         send(clientFd, buffSend, len, 0);

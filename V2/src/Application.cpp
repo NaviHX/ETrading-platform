@@ -17,7 +17,9 @@ int Application::exec()
 {
     std::cout << "#===================================#\n"
               << " ETrading-Platform V2\n"
-              << " Build : "__DATE__" "__TIME__"\n"
+              << " Build : "__DATE__
+                 " "__TIME__
+                 "\n"
               << "#===================================#\n"
               << "Type \'help\' for information\n";
 
@@ -47,6 +49,7 @@ int Application::exec()
     strMap["setpw"] = strValue::setpw;
     strMap["withdraw"] = strValue::withdraw;
     strMap["redcart"] = strValue::redcart;
+    strMap["lscart"] = strValue::lscart;
 
     std::string oper;
     std::cout << "> ";
@@ -73,6 +76,7 @@ int Application::exec()
                               << "redcart <commdity name> <number> : reduce quantity\n"
                               << "delcart <commdity name> : delete a item\n"
                               << "chcart <commdity name> <number> : change quantity in cart\n"
+                              << "lscart : list cart items\n"
                               << "clrcart : clear cart\n"
                               << "genorder : generate the order\n"
                               << "delorder : delete the order\n"
@@ -598,6 +602,21 @@ int Application::exec()
                     {
                         std::cout << "Failed\n";
                         break;
+                    }
+                    break;
+                }
+
+                case lscart:
+                {
+                    if (!isLogged())
+                    {
+                        std::cout << "NOT Logged\n";
+                        break;
+                    }
+
+                    if(!trade->listCart(uname))
+                    {
+                        std::cout<<"Failed\n";
                     }
                     break;
                 }

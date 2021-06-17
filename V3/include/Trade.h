@@ -85,6 +85,7 @@ public:
     bool genOrder(const std::string &uname);
     bool delOrder(const std::string &uname);
     bool clearCart(const std::string &uname);
+    std::string listCart(const std::string &uname);
     bool addCart(const std::string &uname, const std::string &name, int q);
     bool redCart(const std::string &uname, const std::string &name, int q);
     bool changeCart(const std::string &uname, const std::string &name, int q);

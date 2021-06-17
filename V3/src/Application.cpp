@@ -30,7 +30,9 @@ int Application::exec(const std::string &ip, const std::string &port)
 
     std::cout << "#===================================#\n"
               << " ETrading-Platform V3 Client\n"
-              << " Build : "__DATE__" "__TIME__"\n"
+              << " Build : "__DATE__
+                 " "__TIME__
+                 "\n"
               << "#===================================#\n"
               << "Type \'help\' for information\n";
 
@@ -60,6 +62,7 @@ int Application::exec(const std::string &ip, const std::string &port)
     strMap["setpw"] = strValue::setpw;
     strMap["withdraw"] = strValue::withdraw;
     strMap["redcart"] = strValue::redcart;
+    strMap["lscart"] = strValue::lscart;
 
     char buffRecv[MAXBUF];
     char buffSend[MAXBUF];
@@ -988,6 +991,43 @@ int Application::exec(const std::string &ip, const std::string &port)
                     {
                         std::cout << "Failed\n";
                         break;
+                    }
+                    break;
+                }
+
+                case lscart:
+                {
+                    if (!isLogged())
+                    {
+                        std::cout << "NOT Logged\n";
+                        break;
+                    }
+
+                    if (connect(clientFd, (sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
+                    {
+                        std::cout << "CANNOT connect server\n";
+                        return 0;
+                    }
+
+                    std::ostrstream oss(buffSend, MAXBUF);
+                    oss << static_cast<char>(lscart)
+                        << " " << token;
+
+                    write(clientFd, buffSend, MAXBUF);
+                    recv(clientFd, buffRecv, MAXBUF, 0);
+
+                    if (buffRecv[0] == '0')
+                    {
+                        std::cout << "Failed\n";
+                    }
+                    else
+                    {
+                        unsigned i = 2;
+                        while (buffRecv[i] != '\0')
+                        {
+                            std::cout << buffRecv[i];
+                            i++;
+                        }
                     }
                     break;
                 }

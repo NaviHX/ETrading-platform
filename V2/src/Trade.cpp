@@ -854,3 +854,20 @@ bool Trade::refreshOrder()
     }
     return true;
 }
+
+bool Trade::listCart(const std::string &uname)
+{
+    for (auto uit : userList)
+    {
+        if (uit->getUserType() == User::Type::consumer && uname.compare(uit->getName()) == 0)
+        {
+            auto c = dynamic_cast<Consumer *>(uit);
+            for (auto &p : c->cart)
+            {
+                std::cout << "Name : " << p.first << " Num : " << p.second << std::endl;
+            }
+            return true;
+        }
+    }
+    return false;
+}

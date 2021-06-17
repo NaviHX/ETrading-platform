@@ -49,7 +49,8 @@ public:
         quit,
         setpw,
         withdraw,
-        redcart
+        redcart,
+        lscart
     };
 
     bool isLogged() { return logged; }
